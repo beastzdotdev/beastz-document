@@ -7,6 +7,8 @@ import { LandingPageContent } from '@/components/app/root';
 import { AppLayout } from '@/components/app/app-layout';
 
 import '../styles/globals.css';
+import '../styles/theme.css';
+import CustomThemeProvider from '@/components/theme/custom-theme-provider';
 
 const ThemeProvider = dynamic(() => import('../components/theme-provider'), { ssr: false });
 
@@ -27,7 +29,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     getSignUpUrl(),
   ]);
 
-  console.log(userInfo);
+  // console.log(userInfo);
 
   if (!userInfo.user) {
     //TODO: static page here
@@ -37,9 +39,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <>
         <html lang="en">
           <body>
-            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-              <LandingPageContent signInUrl={signInUrl} signUpUrl={signUpUrl} />
-            </ThemeProvider>
+            <LandingPageContent signInUrl={signInUrl} signUpUrl={signUpUrl} />
           </body>
         </html>
       </>
@@ -50,7 +50,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="en">
       <body className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <AppLayout userInfo={userInfo}>{children}</AppLayout>
+          <CustomThemeProvider defaultTheme="neutral" storageKey="vite-ui-custom-theme">
+            <AppLayout userInfo={userInfo}>{children}</AppLayout>
+          </CustomThemeProvider>
         </ThemeProvider>
       </body>
     </html>

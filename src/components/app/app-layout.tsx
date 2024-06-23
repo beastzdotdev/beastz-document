@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { CodeSandboxLogoIcon, MagnifyingGlassIcon, HamburgerMenuIcon } from '@radix-ui/react-icons';
-import { signOutWorkOs } from '@/components/action';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserInfo } from '@workos-inc/authkit-nextjs/dist/cjs/interfaces';
 import {
@@ -14,6 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ModeToggle } from '@/components/mode-toggle';
+import { CustomThemeModeToggle } from '@/components/theme/theme-mode-toggle';
+import { SignOutComponent } from '@/components/app/sign-out-component';
+
+// import { workos } from '@workos-inc/authkit-nextjs/src/workos';
 
 type AppLayoutProps = {
   children: React.ReactNode;
@@ -21,15 +25,11 @@ type AppLayoutProps = {
 };
 
 export const AppLayout = ({ children, userInfo }: AppLayoutProps) => {
+  // const x = workos.userManagement.resetPassword
+
   const AvatarProfileUrl = userInfo.user.profilePictureUrl;
   const FallbackAvatarText =
     (userInfo.user.firstName?.[0] ?? '') + (userInfo.user.lastName?.[0] ?? '');
-
-  const signOut = async () => {
-    'use server';
-
-    signOutWorkOs();
-  };
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -88,6 +88,9 @@ export const AppLayout = ({ children, userInfo }: AppLayoutProps) => {
             </div>
           </form>
 
+          <ModeToggle />
+          <CustomThemeModeToggle />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
@@ -104,8 +107,7 @@ export const AppLayout = ({ children, userInfo }: AppLayoutProps) => {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
+              <SignOutComponent />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

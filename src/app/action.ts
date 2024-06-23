@@ -2,8 +2,6 @@
 
 import { signOut } from '@workos-inc/authkit-nextjs';
 
-export const signOutWorkOs = async () => {
-  'use server';
-
+export async function signOutWorkOs() {
   await signOut();
-};
+}
