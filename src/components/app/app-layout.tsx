@@ -16,17 +16,14 @@ import {
 import { ModeToggle } from '@/components/mode-toggle';
 import { CustomThemeModeToggle } from '@/components/theme/theme-mode-toggle';
 import { SignOutComponent } from '@/components/app/sign-out-component';
-
-// import { workos } from '@workos-inc/authkit-nextjs/src/workos';
+import { constants } from '@/constants';
 
 type AppLayoutProps = {
   children: React.ReactNode;
   userInfo: UserInfo;
 };
 
-export const AppLayout = ({ children, userInfo }: AppLayoutProps) => {
-  // const x = workos.userManagement.resetPassword
-
+export const AppLayout = async ({ children, userInfo }: AppLayoutProps) => {
   const AvatarProfileUrl = userInfo.user.profilePictureUrl;
   const FallbackAvatarText =
     (userInfo.user.firstName?.[0] ?? '') + (userInfo.user.lastName?.[0] ?? '');
@@ -35,16 +32,22 @@ export const AppLayout = ({ children, userInfo }: AppLayoutProps) => {
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <Link href="/" className="flex items-center gap-2 text-lg font-semibold md:text-base">
+          <Link
+            href={constants.path.root}
+            className="flex items-center gap-2 text-lg font-semibold md:text-base"
+          >
             <CodeSandboxLogoIcon className="h-6 w-6" />
           </Link>
 
-          <Link href="/" className="text-foreground transition-colors hover:text-foreground">
-            Dashboard
+          <Link
+            href={constants.path.root}
+            className="text-foreground transition-colors hover:text-foreground"
+          >
+            Home
           </Link>
 
           <Link
-            href="/settings"
+            href={constants.path.settings}
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Settings

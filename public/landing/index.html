@@ -1,0 +1,429 @@
+<!doctype html>
+<!--suppress JSUnresolvedLibraryURL, HtmlUnknownAnchorTarget, JSUnresolvedReference, HtmlDeprecatedAttribute -->
+
+<html lang="en">
+  <head lang="en">
+    <meta charset="UTF-8" />
+    <title>Beastz Doc</title>
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <link rel="manifest" href="/landing/manifest.json" />
+
+    <!-- Google Font Loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind Loading -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#03BE97',
+              secondary: '#9c9c9c',
+
+              // custom ones
+              'primary-bright': '#63ffda',
+              ceramic: '#CCD6F6',
+              'primary-dark': '#102240',
+              dark: '#0B192F',
+            },
+            screens: {
+              tablet: {
+                min: '1330px',
+              },
+            },
+            boxShadow: {
+              blur: '0 0 20px',
+            },
+          },
+
+          // here happens total override
+          fontFamily: {
+            sans: ['"Quicksand"', 'sans-serif'],
+          },
+        },
+      };
+    </script>
+
+    <!-- Font awesome icon loading -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <style type="text/tailwindcss">
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body {
+        font-size: 16px;
+        color: white;
+        @apply bg-dark;
+      }
+
+      .button {
+        cursor: pointer;
+        border-radius: 2px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        transition-delay: 0.2s;
+        text-decoration: none;
+        background: transparent;
+        padding: 10px 18px;
+
+        @apply text-primary-bright border border-primary-bright active:translate-y-0;
+      }
+
+      .button:hover {
+        @apply bg-primary-bright shadow-blur shadow-primary-bright text-black transition-all duration-300 -translate-y-1;
+      }
+    </style>
+  </head>
+
+  <body class="max-w-[1200px] mx-3 sm:mx-10 tablet:mx-auto">
+    <header class="flex flex-col pt-5">
+      <div class="flex justify-between">
+        <div class="flex items-center">
+          <img src="/landing/document.svg" alt="main logo" class="w-8 tablet:w-10" />
+          <h1 class="pl-2 text-xl font-semibold text-primary-bright">Beastz Doc</h1>
+        </div>
+
+        <nav class="hidden md:flex select-none">
+          <ul class="flex">
+            <li class="px-3 hover:opacity-75 cursor-pointer transition-all flex items-center">
+              <a>Home</a>
+            </li>
+            <li class="px-3 hover:opacity-75 cursor-pointer transition-all flex items-center">
+              <a>Blogs</a>
+            </li>
+            <li class="px-3 hover:opacity-75 cursor-pointer transition-all flex items-center">
+              <a target="_blank" rel="noopener noreferrer" href="https://beastz.dev">
+                Other Apps
+              </a>
+              <i class="fa-solid fa-link pl-1 pt-0.5 text-ceramic"></i>
+            </li>
+          </ul>
+        </nav>
+
+        <a href="/home" class="hidden md:flex items-center button cursor-pointer">Try Now</a>
+
+        <i
+          id="sidebar-burger"
+          class="fa-solid fa-bars text-3xl text-primary-bright cursor-pointer block md:hidden transition hover:scale-110 active:scale-100"
+        ></i>
+
+        <div
+          id="sidebar-background"
+          class="bg-[#0006] fixed inset-0 z-10 cursor-pointer hidden"
+        ></div>
+        <div
+          id="sidebar"
+          class="fixed z-20 top-0 bottom-0 right-0 min-w-[400px] bg-primary-dark transform transition-transform duration-300 ease-in-out translate-x-[400px]"
+        >
+          <div class="p-4">
+            <div class="flex justify-end">
+              <i
+                id="sidebar-close"
+                class="fa-solid fa-xmark text-3xl text-primary-bright hover:scale-110 active:scale-100 cursor-pointer"
+              ></i>
+            </div>
+
+            <nav class="flex justify-center select-none">
+              <ul class="flex flex-col gap-5">
+                <li
+                  class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
+                >
+                  <span class="text-primary-bright">#</span>
+                  <a class="pl-2">Home</a>
+                </li>
+                <li
+                  class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
+                >
+                  <span class="text-primary-bright">#</span>
+                  <a class="pl-2">Blogs</a>
+                </li>
+                <li
+                  class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
+                >
+                  <i class="fa-solid fa-link text-[15px] pt-0.5 text-primary-bright"></i>
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="https://beastz.dev"
+                    class="pl-1.5"
+                  >
+                    Other Apps
+                  </a>
+                </li>
+              </ul>
+            </nav>
+
+            <div class="flex justify-center pt-8">
+              <button class="hidden md:flex items-center button cursor-pointer">Try Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        const toggleSidebar = ({ isOpen, container, content }) => {
+          if (content) {
+            isOpen
+              ? (content.style.transform = 'translateX(0px)')
+              : (content.style.transform = 'translateX(400px)');
+          }
+
+          container.classList.toggle('hidden');
+        };
+
+        const burgerIcon = document.getElementById('sidebar-burger');
+        const closeSidebarIcon = document.getElementById('sidebar-close');
+        const sidenavContainer = document.getElementById('sidebar-background');
+        const sidenavContent = document.getElementById('sidebar');
+
+        burgerIcon?.addEventListener('click', () =>
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: true })
+        );
+        closeSidebarIcon?.addEventListener('click', () =>
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: false })
+        );
+        sidenavContainer?.addEventListener('click', () =>
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: false })
+        );
+      </script>
+    </header>
+
+    <main>
+      <section>
+        <div class="flex-col tablet:flex-row flex items-center justify-between pt-32">
+          <div class="tablet:pr-20 pb-10 tablet:pb-0">
+            <h1
+              class="text-3xl tablet:text-5xl font-bold text-ceramic text-center tablet:text-start"
+            >
+              DOCUMENT EVERYTHING AND SHARE
+            </h1>
+            <h2 class="text-lg text-white opacity-75 text-center tablet:text-start pt-3">
+              Minimalist collaborative editing tool, built with react and powered by socket.io
+            </h2>
+          </div>
+
+          <img
+            class="w-[600px] border border-ceramic rounded"
+            src="/landing/main.png"
+            loading="lazy"
+            decoding="async"
+            alt="Something"
+          />
+        </div>
+      </section>
+
+      <section class="pt-48 flex flex-col tablet:flex-row">
+        <div class="pb-10 pr-5 tablet:pb-0 basis-1/3">
+          <h3 class="text-center tablet:text-start text-ceramic opacity-50 font-bold">
+            COLLABORATE
+          </h3>
+          <h2 class="text-3xl font-bold text-ceramic text-center tablet:text-start pt-3">
+            Real-Time Collaboration Made Easy
+          </h2>
+          <p class="text-md text-secondary text-center tablet:text-start pt-3">
+            Experience seamless, real-time editing with smart conflict resolution and interactive
+            collaboration features.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 basis-2/3">
+          <div>
+            <div class="flex items-center justify-center sm:justify-start pb-4">
+              <i class="fa-solid fa-circle-nodes fa-2x text-primary-bright"></i>
+              <h4 class="pl-3 font-bold text-primary-bright">Real-Time Collaborative Editing</h4>
+            </div>
+
+            <p class="text-center sm:text-start">
+              Experience seamless collaboration with instant updates as multiple users edit the same
+              document simultaneously. Watch changes happen live without any delays, ensuring
+              everyone stays on the same page.
+            </p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-center sm:justify-start pb-4">
+              <i class="fa fa-bolt fa-2x text-primary-bright"></i>
+              <h4 class="pl-3 font-bold text-primary-bright">Smart Conflict Resolution</h4>
+            </div>
+
+            <p class="text-center sm:text-start">
+              Say goodbye to editing conflicts with our smart conflict resolution system.
+              Automatically detect and resolve conflicting changes, ensuring a smooth and harmonious
+              editing experience for all users.
+            </p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-center sm:justify-start pb-4">
+              <i class="fa-solid fa-user-group fa-2x text-primary-bright"></i>
+              <h4 class="pl-3 font-bold text-primary-bright">Contextual Awareness and Mentions</h4>
+            </div>
+            <p class="text-center sm:text-start">
+              Improve communication and collaboration with contextual awareness and mentions.
+              Highlight specific text, tag collaborators, and receive notifications, making it
+              easier to address feedback and keep everyone informed.
+            </p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-center sm:justify-start pb-4">
+              <i class="fa-solid fa-quote-left fa-2x text-primary-bright"></i>
+              <h4 class="pl-3 font-bold text-primary-bright">
+                Interactive Comments and Suggestions
+              </h4>
+            </div>
+
+            <p class="text-center sm:text-start">
+              Enhance collaboration with interactive comments and suggestions. Leave feedback,
+              suggest edits, and resolve comments in real-time, making teamwork more efficient and
+              organized.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="pt-48 flex flex-col-reverse tablet:flex-row">
+        <div
+          class="basis-2/3 grid grid-cols-2 md:grid-cols-3 justify-items-center pt-10 tablet:pt-0"
+        >
+          <div class="flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-solid fa-file-shield text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-xl font-bold flex items-center justify-center select-none"
+            >
+              Secure
+            </div>
+          </div>
+          <div class="flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-solid fa-share-nodes text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-xl font-bold flex items-center justify-center select-none"
+            >
+              Share
+            </div>
+          </div>
+          <div class="flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-solid fa-cloud text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-xl font-bold flex items-center justify-center select-none"
+            >
+              Cloud Sync
+            </div>
+          </div>
+          <div class="flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-solid fa-face-smile text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-xl font-bold flex items-center justify-center select-none"
+            >
+              Fun To Use
+            </div>
+          </div>
+          <div class="flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-regular fa-comments text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-md font-bold flex items-center justify-center select-none"
+            >
+              Can Comment
+            </div>
+          </div>
+          <div class="flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-solid fa-sliders text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-md font-bold flex items-center justify-center select-none"
+            >
+              Customizable
+            </div>
+          </div>
+          <div class="flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-solid fa-fingerprint text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-lg font-bold flex items-center justify-center select-none text-center"
+            >
+              Password
+              <br />
+              Protected
+            </div>
+          </div>
+          <div class="flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-solid fa-flask text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-lg font-bold flex items-center justify-center select-none text-center"
+            >
+              Cool
+              <br />
+              Features
+              <br />
+              Coming
+            </div>
+          </div>
+
+          <!-- Hide this because this is decor element and 3x3 is fine but on 2x 9 seems weird -->
+          <div class="hidden md:flex justify-center items-center aspect-square h-32 relative group">
+            <i class="fa-brands fa-github text-6xl text-ceramic opacity-50"></i>
+
+            <div
+              class="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 rounded text-white text-lg font-bold flex items-center justify-center select-none"
+            >
+              Open Source
+            </div>
+          </div>
+        </div>
+
+        <div class="basis-1/3">
+          <h3 class="text-center tablet:text-end text-ceramic opacity-50 font-bold">SYNERGY</h3>
+          <h2 class="text-3xl font-bold text-ceramic text-center tablet:text-end pt-3">
+            Collaborative Creativity
+          </h2>
+          <p class="text-md text-secondary text-center tablet:text-end pt-3">
+            Transform the way you work with Dynamic Documentation, an intuitive platform designed to
+            enhance collaboration and streamline your creative process. Whether you're drafting,
+            editing, or sharing, this tool empowers your team to work together seamlessly, no matter
+            where they are.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="pt-24 pb-4">
+      <p class="m-0 text-sm font-normal text-ceramic-color text-end">
+        <span class="opacity-75">Made with love by</span>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://portfolio.beastz.dev/"
+          class="text-primary-bright font-semibold underline"
+        >
+          Giorgi Kumelashvli
+        </a>
+      </p>
+    </footer>
+  </body>
+</html>
