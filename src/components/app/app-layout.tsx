@@ -16,7 +16,7 @@ import {
 import { ModeToggle } from '@/components/mode-toggle';
 import { CustomThemeModeToggle } from '@/components/theme/theme-mode-toggle';
 import { SignOutComponent } from '@/components/app/sign-out-component';
-import { constants } from '@/constants';
+import { constants } from '@/lib/constants';
 
 type AppLayoutProps = {
   children: React.ReactNode;
