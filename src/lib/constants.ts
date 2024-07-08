@@ -3,5 +3,6 @@ export const constants = {
     landing: '/',
     root: '/home',
     settings: '/settings',
+    editor: '/editor',
   },
 };

@@ -52,6 +52,12 @@ export const AppLayout = async ({ children, userInfo }: AppLayoutProps) => {
           >
             Settings
           </Link>
+          <Link
+            href={constants.path.editor}
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Editor
+          </Link>
         </nav>
 
         <Sheet>

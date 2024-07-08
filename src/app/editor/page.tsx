@@ -5,6 +5,7 @@ import CodeMirror, {
   Extension,
   Prec,
   ReactCodeMirrorProps,
+  TransactionSpec,
   basicSetup,
   keymap,
 } from '@uiw/react-codemirror';
@@ -13,6 +14,7 @@ import {
   CompletionContext,
   CompletionResult,
   autocompletion,
+  insertCompletionText,
   startCompletion,
 } from '@codemirror/autocomplete';
 import {
@@ -55,13 +57,42 @@ const highestPredesenceKeymapExtensions = Prec.highest(
 );
 
 async function myCompletions(context: CompletionContext): Promise<CompletionResult | null> {
-  let word = context.matchBefore(/\w*/);
+  let word = context.matchBefore(/.*/s); // matches everything
+
+  context.state.update({
+    selection: { anchor: 1 },
+  });
 
   if (word?.from == word?.to && !context.explicit) return null;
+
+  // context.state.
 
   return {
     from: word?.from as number,
     options: [
+      {
+        label: `<h1></h1>`,
+        type: `variable`,
+        apply: (view, _completion, from, to) => {
+          const text = `<h1></h1>`;
+          const cursorPosition = text.length / 2;
+
+          view.dispatch({
+            ...insertCompletionText(view.state, text, from, to),
+            selection: {
+              anchor: from + cursorPosition,
+              // head: from + cursorPosition + 3, // <- if this is active then instead of cursor it is selection
+            },
+          });
+        },
+      },
+      { label: `bold`, type: `variable`, apply: '***' }, //
+      { label: `@`, type: `variable`, displayLabel: 'Table', apply: 'Table example @' }, //
+      { label: `@`, type: `variable`, displayLabel: 'H1', apply: 'H! example @' }, //
+
+      { label: `/`, type: `util`, displayLabel: 'Text', apply: '' }, //
+      { label: `/`, type: `util`, displayLabel: 'Text Bold', apply: '***' }, //
+
       { label: `custom`, type: `custom` },
       { label: `class`, type: `class` },
       { label: `constant`, type: `constant` },
@@ -122,6 +153,17 @@ const extensions: Extension[] = [
 // gears f085
 // wrench f0ad
 // toolbox f552
+
+//! Best one for markdown preview better than all
+//! https://github.com/markdown-it/markdown-it
+
+// for codemirror
+// https://discuss.codemirror.net/t/how-to-highlight-the-editor-in-markdown-mode/3098/4
+// https://github.com/uiwjs/react-markdown-preview (This is what you need I guess and I thnk markdown-it may not be even needed)
+// https://github.com/uiwjs/react-markdown-editor (This just basically use library from top)
+
+// SO !!! uiwjs/react-markdown-editor -> uiwjs/react-markdown-preview -> react-markdown -> remark
+// so basically all comes down to remark so try this and also try markdown-it as well see which is better
 
 export default function EditorPage(): JSX.Element {
   const [theme, setTheme] = useState<ReactCodeMirrorProps['theme']>('dark');

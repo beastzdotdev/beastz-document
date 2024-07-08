@@ -1,12 +1,41 @@
 ```tsx
 async function myCompletions(context: CompletionContext): Promise<CompletionResult | null> {
-  let word = context.matchBefore(/\w*/);
+  let word = context.matchBefore(/.*/s); // matches everything
+
+  context.state.update({
+    selection: { anchor: 1 },
+  });
 
   if (word?.from == word?.to && !context.explicit) return null;
+
+  // context.state.
 
   return {
     from: word?.from as number,
     options: [
+      {
+        label: `<h1></h1>`,
+        type: `variable`,
+        apply: (view, _completion, from, to) => {
+          const text = `<h1></h1>`;
+          const cursorPosition = text.length / 2;
+
+          view.dispatch({
+            ...insertCompletionText(view.state, text, from, to),
+            selection: {
+              anchor: from + cursorPosition,
+              // head: from + cursorPosition + 3, // <- if this is active then instead of cursor it is selection
+            },
+          });
+        },
+      },
+      { label: `bold`, type: `variable`, apply: '***' }, //
+      { label: `@`, type: `variable`, displayLabel: 'Table', apply: 'Table example @' }, //
+      { label: `@`, type: `variable`, displayLabel: 'H1', apply: 'H! example @' }, //
+
+      { label: `/`, type: `util`, displayLabel: 'Text', apply: '' }, //
+      { label: `/`, type: `util`, displayLabel: 'Text Bold', apply: '***' }, //
+
       { label: `custom`, type: `custom` },
       { label: `class`, type: `class` },
       { label: `constant`, type: `constant` },
