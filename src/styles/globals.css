@@ -135,3 +135,11 @@
   color: rgb(99, 230, 190);
   content: '\f0ad';
 }
+
+/* TODO: This is for tooltip find out if you can dynamically get/set specific theme clasess */
+/* TODO: Final solution would be to just create your own theme and all necesary classes or fork and add it yourself */
+.ͼlu .ͼlu-tooltip {
+  background-color: #002451 !important;
+  color: #ffffff !important;
+  filter: brightness(85%);
+}

@@ -2,11 +2,13 @@
 
 import * as themes from '@uiw/codemirror-themes-all';
 import CodeMirror, {
+  EditorView,
   Extension,
   Prec,
   ReactCodeMirrorProps,
   TransactionSpec,
   basicSetup,
+  hoverTooltip,
   keymap,
 } from '@uiw/react-codemirror';
 import { insertTab, indentLess, insertNewlineKeepIndent } from '@codemirror/commands';
@@ -25,6 +27,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useMemo, useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 const highestPredesenceKeymapExtensions = Prec.highest(
   keymap.of([
@@ -55,6 +59,50 @@ const highestPredesenceKeymapExtensions = Prec.highest(
     },
   ])
 );
+
+const wordHover = hoverTooltip((view, pos, side) => {
+  let { from, to, text } = view.state.doc.lineAt(pos);
+  let start = pos,
+    end = pos;
+
+  while (start > from && /\w/.test(text[start - from - 1])) start--;
+  while (end < to && /\w/.test(text[end - from])) end++;
+
+  if ((start == pos && side < 0) || (end == pos && side > 0)) return null;
+
+  let word = text.slice(start - from, end - from);
+  text = 'tooltip info text';
+
+  return {
+    pos: start,
+    end,
+    above: false,
+    create(view) {
+      let dom = document.createElement('tag-div');
+      dom.className = 'cm-tooltip-cursor';
+      EditorView.baseTheme({
+        '.cm-tooltip-lint': {
+          width: '80%',
+        },
+        '.cm-tooltip-cursor': {
+          border: 'none',
+          padding: '5px',
+          borderRadius: '4px',
+          '& .cm-tooltip-arrow:before': {
+            borderTopColor: '#66b !important',
+          },
+          '& .cm-tooltip-arrow:after': {
+            borderTopColor: 'transparent',
+          },
+        },
+      });
+      dom.textContent = text;
+      return { dom };
+    },
+  };
+
+  return null;
+});
 
 async function myCompletions(context: CompletionContext): Promise<CompletionResult | null> {
   let word = context.matchBefore(/.*/s); // matches everything
@@ -108,7 +156,12 @@ async function myCompletions(context: CompletionContext): Promise<CompletionResu
       { label: `variable`, type: `variable`, info: 'Addiotional', detail: 'Addiotional text' },
       { label: `variable1`, type: `variable`, info: 'Addiotional', detail: 'Addiotional text' },
       { label: `variable2`, type: `variable`, info: 'Addiotional', detail: 'Addiotional text' },
-      { label: `variable3`, type: `variable`, info: 'Addiotional', detail: 'Addiotional text' },
+      {
+        label: `variable3`,
+        type: `variable`,
+        info: 'Addiotional',
+        detail: 'Addiotional text',
+      },
 
       {
         label: 'username',
@@ -130,25 +183,6 @@ async function myCompletions(context: CompletionContext): Promise<CompletionResu
   };
 }
 
-const extensions: Extension[] = [
-  basicSetup({
-    foldGutter: true,
-    allowMultipleSelections: true,
-    highlightActiveLine: true,
-    lineNumbers: true,
-    defaultKeymap: true,
-    autocompletion: true,
-    completionKeymap: true,
-  }),
-  highestPredesenceKeymapExtensions,
-  autocompletion({
-    defaultKeymap: true,
-    activateOnTyping: true,
-    activateOnTypingDelay: 0,
-    override: [myCompletions],
-  }),
-];
-
 // gear f013
 // gears f085
 // wrench f0ad
@@ -167,6 +201,9 @@ const extensions: Extension[] = [
 
 export default function EditorPage(): JSX.Element {
   const [theme, setTheme] = useState<ReactCodeMirrorProps['theme']>('dark');
+  const [isAutocompleteActive, setIsAutocompleteActive] = useState(false);
+  const [isHoverTooltipActive, setIsHoverTooltipActive] = useState(false);
+
   const themeOptions = useMemo(
     () =>
       ['dark', 'light']
@@ -175,6 +212,48 @@ export default function EditorPage(): JSX.Element {
         .filter(item => !/^(defaultSettings)/.test(item as keyof typeof themes)),
     []
   );
+
+  console.log('rerender');
+
+  const extensions: Extension[] = useMemo(() => {
+    console.log('rerender in extensions');
+
+    const finalExtensions = [
+      basicSetup({
+        foldGutter: true,
+        allowMultipleSelections: true,
+        highlightActiveLine: true,
+        lineNumbers: true,
+        defaultKeymap: true,
+        autocompletion: true,
+        completionKeymap: true,
+      }),
+      highestPredesenceKeymapExtensions,
+    ];
+
+    if (isAutocompleteActive) {
+      finalExtensions.push(
+        autocompletion({
+          defaultKeymap: true,
+          activateOnTyping: true,
+          activateOnTypingDelay: 0,
+          override: [myCompletions],
+          tooltipClass: () => 'ͼlu-tooltip',
+          optionClass(completion) {
+            console.log(completion);
+
+            return 'my-custom-class';
+          },
+        })
+      );
+    }
+
+    if (isHoverTooltipActive) {
+      finalExtensions.push(wordHover);
+    }
+
+    return finalExtensions;
+  }, [isAutocompleteActive, isHoverTooltipActive]);
 
   return (
     <>
@@ -191,6 +270,28 @@ export default function EditorPage(): JSX.Element {
             ))}
           </SelectContent>
         </Select>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="isAutocompleteActive"
+            checked={isAutocompleteActive}
+            onCheckedChange={setIsAutocompleteActive}
+          />
+          <Label htmlFor="isAutocompleteActive" className="cursor-pointer">
+            Toggle autocomplete
+          </Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="isHoverTooltipActive"
+            checked={isHoverTooltipActive}
+            onCheckedChange={setIsHoverTooltipActive}
+          />
+          <Label htmlFor="isHoverTooltipActive" className="cursor-pointer">
+            Toggle hover tooltip
+          </Label>
+        </div>
       </div>
 
       <div className="max-w-[850px]">
