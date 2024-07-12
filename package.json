@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
+    "dev:server": "nodemon ./socket.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.16.3",
+    "@codemirror/collab": "^6.1.1",
     "@codemirror/language": "^6.10.2",
     "@hookform/resolvers": "^3.6.0",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -27,10 +29,14 @@
     "@workos-inc/authkit-nextjs": "^0.6.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
     "next": "14.2.4",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.51.5",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"
@@ -41,6 +47,7 @@
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.4",
+    "nodemon": "^3.1.4",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"

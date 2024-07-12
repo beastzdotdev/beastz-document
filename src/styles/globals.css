@@ -138,7 +138,8 @@
 
 /* TODO: This is for tooltip find out if you can dynamically get/set specific theme clasess */
 /* TODO: Final solution would be to just create your own theme and all necesary classes or fork and add it yourself */
-.ͼlu .ͼlu-tooltip {
+/* This only works on TommorrowNightBlue */
+.ͼmc .ͼlu-tooltip {
   background-color: #002451 !important;
   color: #ffffff !important;
   filter: brightness(85%);

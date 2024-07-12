@@ -1,10 +1,17 @@
 'use client';
 
-import * as themes from '@uiw/codemirror-themes-all';
-import { autocompletion } from '@codemirror/autocomplete';
-import { Extension, Prec, basicSetup, keymap, oneDark, useCodeMirror } from '@uiw/react-codemirror';
+import { autocompletion, CompletionContext, CompletionResult } from '@codemirror/autocomplete';
+import {
+  Compartment,
+  Extension,
+  Prec,
+  StateEffect,
+  basicSetup,
+  keymap,
+  useCodeMirror,
+} from '@uiw/react-codemirror';
 import { insertTab, indentLess, insertNewlineKeepIndent } from '@codemirror/commands';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,11 +20,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { javascript } from '@codemirror/lang-javascript';
-
-let something = null;
-
-// console.log(something);
 
 const highestPredesenceKeymapExtensions = Prec.highest(
   keymap.of([
@@ -45,6 +47,40 @@ const highestPredesenceKeymapExtensions = Prec.highest(
   ])
 );
 
+async function myCompletions(context: CompletionContext): Promise<CompletionResult | null> {
+  let word = context.matchBefore(/.*/s); // matches everything
+
+  context.state.update({
+    selection: { anchor: 1 },
+  });
+
+  if (word?.from == word?.to && !context.explicit) return null;
+
+  // context.state.
+
+  return {
+    from: word?.from as number,
+    options: [
+      { label: `variable`, type: `variable`, info: 'Addiotional', detail: 'Addiotional text' },
+      { label: `variable1`, type: `variable`, info: 'Addiotional', detail: 'Addiotional text' },
+      { label: `variable2`, type: `variable`, info: 'Addiotional', detail: 'Addiotional text' },
+    ],
+  };
+}
+
+const autoCompleteExt = autocompletion({
+  defaultKeymap: true,
+  activateOnTyping: true,
+  activateOnTypingDelay: 0,
+  override: [myCompletions],
+  tooltipClass: () => 'ͼlu-tooltip',
+  optionClass(completion) {
+    console.log(completion);
+
+    return 'my-custom-class';
+  },
+});
+
 const extensions: Extension[] = [
   basicSetup({
     foldGutter: false,
@@ -56,17 +92,14 @@ const extensions: Extension[] = [
     completionKeymap: true,
   }),
   highestPredesenceKeymapExtensions,
-  autocompletion({
-    defaultKeymap: true,
-    activateOnTyping: true,
-    activateOnTypingDelay: 0,
-  }),
-  javascript(),
 ];
+
+const autoCompleteCompartment = new Compartment();
 
 export default function EditorWithHookPage() {
   const editor = useRef<HTMLDivElement>(null);
-  const { view, state, setView } = useCodeMirror({
+  const [isAutocompleteActive, setIsAutocompleteActive] = useState(true);
+  const { view } = useCodeMirror({
     container: editor.current,
     extensions,
     value: '',
@@ -77,50 +110,53 @@ export default function EditorWithHookPage() {
     readOnly: false,
   });
 
-  // const [selectTheme, setSelectTheme] = useState<keyof typeof themesData>();
+  useEffect(() => {
+    if (!view) {
+      return;
+    }
 
-  const changeTheme = () => {
-    // console.log(themes);
-    // console.log(themes.duotoneDark);
-    // const startState = EditorState.create({
-    //   doc: 'Your code goes here...',
-    //   extensions,
-    // });
-    // const view = new EditorView({
-    //   state: startState,
-    //   parent: document.body,
-    //   extensions,
-    // });
-    // view.dispatch({
-    //   effects: StateEffect.reconfigure.of([basicSetup, newTheme]),
-    // });
-    // setView(view);
-    // setView(editorTheme.reconfigure(oneDark));
-    // setView(() => editorTheme.reconfigure(oneDark));
-    // console.log(view);
-    // view?.dispatch({
-    //   effects: StateEffect.reconfigure.of([...extensions, oneDark]),
-    // });
+    if (isAutocompleteActive) {
+      if (autoCompleteCompartment.get(view.state) === undefined) {
+        view.dispatch({
+          effects: StateEffect.appendConfig.of(autoCompleteCompartment.of(autoCompleteExt)),
+        });
+      } else {
+        view.dispatch({
+          effects: autoCompleteCompartment.reconfigure(autoCompleteExt),
+        });
+      }
+    } else {
+      view.dispatch({
+        effects: autoCompleteCompartment.reconfigure([]),
+      });
+    }
+  }, [isAutocompleteActive, view]);
+
+  const toggle = () => {
+    setIsAutocompleteActive(prev => !prev);
   };
 
   return (
     <>
-      <Button onClick={changeTheme}>theme</Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild className="w-24">
-          <Button variant="secondary">
-            Themes
-            {/* <MagnifyingGlassIcon className="h-4 w-4" /> */}
-          </Button>
-        </DropdownMenuTrigger>
+      <div className="flex">
+        <Button onClick={toggle}>toggle</Button>
 
-        <DropdownMenuContent>
-          {}
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="w-24 ml-4">
+            <Button variant="secondary">
+              Themes
+              {/* <MagnifyingGlassIcon className="h-4 w-4" /> */}
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent>
+            {}
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem>Support</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <div ref={editor} />
     </>

@@ -2,11 +2,14 @@
 
 import * as themes from '@uiw/codemirror-themes-all';
 import CodeMirror, {
+  Annotation,
+  Compartment,
+  EditorState,
   EditorView,
   Extension,
   Prec,
   ReactCodeMirrorProps,
-  TransactionSpec,
+  Text,
   basicSetup,
   hoverTooltip,
   keymap,
@@ -19,6 +22,7 @@ import {
   insertCompletionText,
   startCompletion,
 } from '@codemirror/autocomplete';
+import { getClientID, getSyncedVersion, receiveUpdates } from '@codemirror/collab';
 import {
   Select,
   SelectContent,
@@ -26,9 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 
 const highestPredesenceKeymapExtensions = Prec.highest(
   keymap.of([
@@ -199,10 +204,27 @@ async function myCompletions(context: CompletionContext): Promise<CompletionResu
 // SO !!! uiwjs/react-markdown-editor -> uiwjs/react-markdown-preview -> react-markdown -> remark
 // so basically all comes down to remark so try this and also try markdown-it as well see which is better
 
+const autoCompleteCompartment = new Compartment();
+
+const autoCompleteExt = autocompletion({
+  defaultKeymap: true,
+  activateOnTyping: true,
+  activateOnTypingDelay: 0,
+  override: [myCompletions],
+  tooltipClass: () => 'ͼlu-tooltip',
+  optionClass(completion) {
+    console.log(completion);
+
+    return 'my-custom-class';
+  },
+});
+
 export default function EditorPage(): JSX.Element {
   const [theme, setTheme] = useState<ReactCodeMirrorProps['theme']>('dark');
-  const [isAutocompleteActive, setIsAutocompleteActive] = useState(false);
-  const [isHoverTooltipActive, setIsHoverTooltipActive] = useState(false);
+  const [isAutocompleteActive, setIsAutocompleteActive] = useState(true);
+  const [isHoverTooltipActive, setIsHoverTooltipActive] = useState(true);
+  // const [view, setView] = useState<EditorView | null>(null);
+  const view = useRef<{ view: EditorView }>(null);
 
   const themeOptions = useMemo(
     () =>
@@ -213,11 +235,7 @@ export default function EditorPage(): JSX.Element {
     []
   );
 
-  console.log('rerender');
-
   const extensions: Extension[] = useMemo(() => {
-    console.log('rerender in extensions');
-
     const finalExtensions = [
       basicSetup({
         foldGutter: true,
@@ -225,35 +243,45 @@ export default function EditorPage(): JSX.Element {
         highlightActiveLine: true,
         lineNumbers: true,
         defaultKeymap: true,
-        autocompletion: true,
+        autocompletion: false,
         completionKeymap: true,
       }),
       highestPredesenceKeymapExtensions,
     ];
-
-    if (isAutocompleteActive) {
-      finalExtensions.push(
-        autocompletion({
-          defaultKeymap: true,
-          activateOnTyping: true,
-          activateOnTypingDelay: 0,
-          override: [myCompletions],
-          tooltipClass: () => 'ͼlu-tooltip',
-          optionClass(completion) {
-            console.log(completion);
-
-            return 'my-custom-class';
-          },
-        })
-      );
-    }
 
     if (isHoverTooltipActive) {
       finalExtensions.push(wordHover);
     }
 
     return finalExtensions;
-  }, [isAutocompleteActive, isHoverTooltipActive]);
+  }, [isHoverTooltipActive]);
+
+  useEffect(() => {
+    if (!view.current) {
+      return;
+    }
+
+    if (isAutocompleteActive) {
+      // console.log(123456);
+      // console.log(view);
+      // console.log(autoCompleteCompartment.reconfigure(autoCompleteExt));
+      // console.log(typeof view.current);
+
+      view.current.view?.dispatch({
+        effects: [autoCompleteCompartment.reconfigure(autoCompleteExt)],
+      });
+    } else {
+      // view.current?.dispatch({
+      //   effects: [autoCompleteCompartment.reconfigure([])],
+      // });
+    }
+  }, [isAutocompleteActive, view]);
+
+  const test = () => {
+    // view.current?.dispatch({
+    //   effects: [autoCompleteCompartment.reconfigure([])],
+    // });
+  };
 
   return (
     <>
@@ -292,16 +320,22 @@ export default function EditorPage(): JSX.Element {
             Toggle hover tooltip
           </Label>
         </div>
+
+        <Button onClick={test}>Test</Button>
       </div>
 
       <div className="max-w-[850px]">
         <CodeMirror
-          value={'hello'}
+          ref={view}
+          value={Text.of(['Hello']).toString()}
           height="600px"
           autoFocus
           spellCheck
           readOnly={false}
           extensions={extensions}
+          // onCreateEditor={(view, state) => {
+          //   setView(view);
+          // }}
           //
           theme={(themes[theme as keyof typeof themes] || theme) as ReactCodeMirrorProps['theme']}
         />
