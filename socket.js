@@ -31,12 +31,12 @@ let doc = Text.of(["Start document"])
 /** @type {((value: any) => void)[]} */
 let pending = []
 io.on('connection', (socket) => {
-  console.log('+'.repeat(20));
-  console.log(socket.id);
-  console.log('a user connected');
+  // console.log('+'.repeat(20));
+  // console.log(socket.id);
+  // console.log('a user connected');
 
   socket.on('pullUpdates', (version) => {
-    console.log('pullUpdates' + '---' + socket.id);
+    // console.log('pullUpdates' + '---' + socket.id);
 
     if (version < updates.length) {
       socket.emit("pullUpdateResponse", JSON.stringify(updates.slice(version)))
@@ -47,6 +47,8 @@ io.on('connection', (socket) => {
 
   socket.on('pushUpdates', (version, docUpdates) => {
     console.log('pushUpdates' + '---' + socket.id);
+    console.log(version);
+    console.log(docUpdates);
     docUpdates = JSON.parse(docUpdates);
 
     try {
@@ -67,10 +69,15 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.error(error)
     }
+
+    // console.log('='.repeat(20));
+    // console.log(updates);
+    // console.log(doc);
+    // console.log('='.repeat(20));
   })
 
   socket.on('getDocument', () => {
-    console.log('getDocument' + '---' + socket.id);
+    // console.log('getDocument' + '---' + socket.id);
     socket.emit('getDocumentResponse', updates.length, doc.toString());
   })
 });

@@ -75,6 +75,10 @@
   }
 }
 
+:root {
+  color-scheme: only dark;
+}
+
 .ͼp .cm-tooltip {
   border-bottom-color: rgb(69, 69, 69);
   border-bottom-left-radius: 3px;

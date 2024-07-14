@@ -97,7 +97,7 @@ export const autoCompleteExtension = autocompletion({
   override: [myCompletions],
   tooltipClass: () => 'ͼlu-tooltip',
   optionClass(completion) {
-    console.log(completion);
+    // console.log(completion);
 
     return 'my-custom-class';
   },
