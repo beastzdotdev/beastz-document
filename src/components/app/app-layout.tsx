@@ -1,10 +1,10 @@
 import Link from 'next/link';
+import Image from 'next/image';
+import { ThemeModeToggle } from '@/components/theme/theme-mode-toggle';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { CodeSandboxLogoIcon, MagnifyingGlassIcon, HamburgerMenuIcon } from '@radix-ui/react-icons';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserInfo } from '@workos-inc/authkit-nextjs/dist/cjs/interfaces';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { constants } from '@/lib/constants';
+import { Icon } from '@iconify/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,99 +13,202 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ModeToggle } from '@/components/mode-toggle';
-import { CustomThemeModeToggle } from '@/components/theme/theme-mode-toggle';
-import { SignOutComponent } from '@/components/app/sign-out-component';
-import { constants } from '@/lib/constants';
+import {
+  Menubar,
+  MenubarCheckboxItem,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarRadioGroup,
+  MenubarRadioItem,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from '@/components/ui/menubar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+//lazy load
+import LogoSvg from '../../assets/document.svg';
 
 type AppLayoutProps = {
   children: React.ReactNode;
-  userInfo: UserInfo;
 };
 
-export const AppLayout = async ({ children, userInfo }: AppLayoutProps) => {
-  const AvatarProfileUrl = userInfo.user.profilePictureUrl;
-  const FallbackAvatarText =
-    (userInfo.user.firstName?.[0] ?? '') + (userInfo.user.lastName?.[0] ?? '');
+function MenubarDemo() {
+  return (
+    <Menubar className="border-none p-0 h-auto shadow-none">
+      <MenubarMenu>
+        <MenubarTrigger className="font-medium px-2 cursor-pointer hover:bg-accent">
+          File
+        </MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem>
+            New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem>
+            New Window <MenubarShortcut>⌘N</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem disabled>New Incognito Window</MenubarItem>
+          <MenubarSeparator />
+          <MenubarSub>
+            <MenubarSubTrigger>Share</MenubarSubTrigger>
+            <MenubarSubContent>
+              <MenubarItem>Email link</MenubarItem>
+              <MenubarItem>Messages</MenubarItem>
+              <MenubarItem>Notes</MenubarItem>
+            </MenubarSubContent>
+          </MenubarSub>
+          <MenubarSeparator />
+          <MenubarItem>
+            Print... <MenubarShortcut>⌘P</MenubarShortcut>
+          </MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+      <MenubarMenu>
+        <MenubarTrigger className="font-medium px-2 cursor-pointer hover:bg-accent">
+          Edit
+        </MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem>
+            Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem>
+            Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+          </MenubarItem>
+          <MenubarSeparator />
+          <MenubarSub>
+            <MenubarSubTrigger>Find</MenubarSubTrigger>
+            <MenubarSubContent>
+              <MenubarItem>Search the web</MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem>Find...</MenubarItem>
+              <MenubarItem>Find Next</MenubarItem>
+              <MenubarItem>Find Previous</MenubarItem>
+            </MenubarSubContent>
+          </MenubarSub>
+          <MenubarSeparator />
+          <MenubarItem>Cut</MenubarItem>
+          <MenubarItem>Copy</MenubarItem>
+          <MenubarItem>Paste</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+      <MenubarMenu>
+        <MenubarTrigger className="font-medium px-2 cursor-pointer hover:bg-accent">
+          View
+        </MenubarTrigger>
+        <MenubarContent>
+          <MenubarCheckboxItem>Always Show Bookmarks Bar</MenubarCheckboxItem>
+          <MenubarCheckboxItem checked>Always Show Full URLs</MenubarCheckboxItem>
+          <MenubarSeparator />
+          <MenubarItem inset>
+            Reload <MenubarShortcut>⌘R</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem disabled inset>
+            Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
+          </MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem inset>Toggle Fullscreen</MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem inset>Hide Sidebar</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+      <MenubarMenu>
+        <MenubarTrigger className="font-medium px-2 cursor-pointer hover:bg-accent">
+          Profiles
+        </MenubarTrigger>
+        <MenubarContent>
+          <MenubarRadioGroup value="benoit">
+            <MenubarRadioItem value="andy">Andy</MenubarRadioItem>
+            <MenubarRadioItem value="benoit">Benoit</MenubarRadioItem>
+            <MenubarRadioItem value="Luis">Luis</MenubarRadioItem>
+          </MenubarRadioGroup>
+          <MenubarSeparator />
+          <MenubarItem inset>Edit...</MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem inset>Add Profile...</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
+  );
+}
 
+export const AppLayout = async ({ children }: AppLayoutProps) => {
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+      <header className="sticky pt-2 top-0 flex items-center gap-4 border-b px-4 pb-1.5">
+        <div className="flex">
           <Link
-            href={constants.path.root}
+            href={constants.path.home}
             className="flex items-center gap-2 text-lg font-semibold md:text-base"
           >
-            <CodeSandboxLogoIcon className="h-6 w-6" />
+            <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-9" />
           </Link>
 
-          <Link
-            href={constants.path.root}
-            className="text-foreground transition-colors hover:text-foreground"
-          >
-            Home
-          </Link>
+          <div className="flex flex-col pl-2">
+            <div className="pl-2 flex items-center gap-3">
+              <p className="text-lg font-normal text-nowrap tracking-tight">
+                Sandbox Ultimate Edition
+              </p>
 
-          <Link
-            href={constants.path.settings}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Settings
-          </Link>
-          <Link
-            href={constants.path.editor}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Editor
-          </Link>
-        </nav>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Icon
+                      icon="ic:outline-drive-file-move"
+                      className="text-xl hover:text-2xl active:text-xl transition-all"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>Move this file inside vault</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="shrink-0 md:hidden">
-              <HamburgerMenuIcon className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-
-          <SheetContent side="left">
-            <nav className="grid gap-6 text-lg font-medium">
-              <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
-                <CodeSandboxLogoIcon className="h-6 w-6" />
-              </Link>
-
-              <Link href="/" className="hover:text-foreground">
-                Dashboard
-              </Link>
-
-              <Link href="/settings" className="text-muted-foreground hover:text-foreground">
-                Settings
-              </Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
-
-        <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="ml-auto flex-1 sm:flex-initial">
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-
-              <Input
-                type="search"
-                placeholder="Search products..."
-                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Icon
+                      icon="dashicons:cloud-saved"
+                      className="text-xl hover:text-2xl active:text-xl transition-all"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    All changes are save in{' '}
+                    <Link href={constants.externalLinks.beastzVault} className="underline">
+                      Vault
+                    </Link>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-          </form>
 
-          <ModeToggle />
-          <CustomThemeModeToggle />
+            <MenubarDemo />
+          </div>
+        </div>
+
+        <div className="flex justify-end w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4 flex-1">
+          <Button size="icon" variant="ghost" className="focus-visible:ring-0">
+            <Icon icon="ion:apps" className="text-xl" />
+          </Button>
+
+          <Button size="icon" variant="ghost" className="focus-visible:ring-0">
+            <Icon icon="icon-park-solid:comments" className="text-xl" />
+          </Button>
+
+          <ThemeModeToggle />
+
+          <Button variant="default" className="rounded-full">
+            <Icon icon="charm:share" className="mr-2 h-4 w-4" />
+            Share
+          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar>
-                  {AvatarProfileUrl && <AvatarImage src={AvatarProfileUrl} />}
-                  <AvatarFallback>{FallbackAvatarText}</AvatarFallback>
+                  {/* {AvatarProfileUrl && <AvatarImage src={AvatarProfileUrl} />} */}
+                  <AvatarFallback>Gio</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -116,13 +219,13 @@ export const AppLayout = async ({ children, userInfo }: AppLayoutProps) => {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <SignOutComponent />
+              <DropdownMenuItem>Sign out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </header>
 
-      <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
+      <main className="flex flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
         {children}
       </main>
     </div>

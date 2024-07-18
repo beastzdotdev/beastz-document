@@ -1,35 +1,38 @@
 'use client';
 
+import { Icon } from '@iconify/react';
+import { useMemo } from 'react';
+import { CheckIcon, MixIcon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/hooks/use-theme';
+import { constants } from '@/lib/constants';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MixIcon } from '@radix-ui/react-icons';
-import { themes, useCustomTheme } from '@/components/theme/custom-theme-provider';
 
-const themeKeys = Object.keys(themes);
-
-export function CustomThemeModeToggle() {
-  const { setTheme } = useCustomTheme();
+export const ThemeModeToggle = () => {
+  const { theme, setTheme } = useTheme();
+  const themeKeys = useMemo(() => Object.keys(constants.ui.themes), []);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <MixIcon className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Custom theme</span>
+        <Button size="icon" variant="ghost" className="focus-visible:ring-0">
+          <Icon icon="mdi:theme" className="text-xl" />
         </Button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="end">
         {themeKeys.map(key => (
-          <DropdownMenuItem key={key} onClick={() => setTheme(themes[key])}>
+          <DropdownMenuItem key={key} onClick={() => setTheme(constants.ui.themes[key])}>
             {key}
+            {theme === constants.ui.themes[key] && <CheckIcon className="ml-1" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

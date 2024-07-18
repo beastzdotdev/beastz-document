@@ -1,9 +1,8 @@
 
 
 #### for landing pages links
-https://onepagelove.com/namari
-https://demos.onepagelove.com/html/namari/
+TODO: make original website like this https://dockit.geekfun.club/
 
 refactor and finish upper project in downloads folder try to squiz out only single js file and transfer here in this nextjs change favicon and all kinds of stuff
 
-Ebverything will be in obsidian
+Everything will be in obsidian

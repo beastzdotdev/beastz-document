@@ -1,5 +1,3 @@
-// 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -36,8 +34,8 @@ export default function DashboardPage(): JSX.Element {
         </DropdownMenu>
       </div>
 
-      <Card className="p-5 mt-5 bg-gradient">
-        <h1>Hello</h1>
+      <Card className="p-5 mt-5 bg-gradient w-48 h-24">
+        <h1 className="text-secondary font-semibold">Gradient Example</h1>
       </Card>
     </>
   );

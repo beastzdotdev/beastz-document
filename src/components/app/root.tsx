@@ -1,22 +1,15 @@
 import { Button } from '@/components/ui/button';
+import { constants } from '@/lib/constants';
 import Link from 'next/link';
 
-type LandingPageProps = {
-  children?: React.ReactNode;
-  signInUrl: string;
-  signUpUrl: string;
-};
-
-export const LandingPageContent = (props: LandingPageProps) => {
-  const { children, signInUrl, signUpUrl } = props;
-
+export const LandingPageContent = () => {
   return (
     <>
-      <Link href={signInUrl}>
+      <Link href={constants.path.signIn}>
         <Button>Sign in</Button>
       </Link>
 
-      <Link href={signUpUrl}>
+      <Link href={constants.path.signUp}>
         <Button>Sign up</Button>
       </Link>
     </>
