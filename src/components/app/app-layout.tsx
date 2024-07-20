@@ -188,11 +188,11 @@ export const AppLayout = async ({ children }: AppLayoutProps) => {
         </div>
 
         <div className="flex justify-end w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4 flex-1">
-          <Button size="icon" variant="ghost" className="focus-visible:ring-0">
+          <Button size="icon" variant="outline" className="focus-visible:ring-0">
             <Icon icon="ion:apps" className="text-xl" />
           </Button>
 
-          <Button size="icon" variant="ghost" className="focus-visible:ring-0">
+          <Button size="icon" variant="outline" className="focus-visible:ring-0">
             <Icon icon="icon-park-solid:comments" className="text-xl" />
           </Button>
 
@@ -225,9 +225,7 @@ export const AppLayout = async ({ children }: AppLayoutProps) => {
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
-        {children}
-      </main>
+      <main className="flex-1 bg-muted/40 p-4 md:gap-8 md:p-10">{children}</main>
     </div>
   );
 };

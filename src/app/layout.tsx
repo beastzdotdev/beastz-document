@@ -11,7 +11,7 @@ import '../styles/theme.css';
 const ThemeProvider = dynamic(() => import('@/components/theme/theme-provider'), { ssr: false });
 
 export const metadata: Metadata = {
-  title: 'Beastz Doc',
+  title: 'Beastz Docs',
   description: 'Collaborative and Documentation tool for beastzs',
 };
 
