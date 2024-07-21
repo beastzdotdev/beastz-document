@@ -44,17 +44,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
         />
+        {/* <link rel="icon" href="/favicon.ico" sizes="any" /> */}
       </head>
 
       <body
         className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}
         suppressHydrationWarning
       >
-        <ThemeProvider>
-          {children}
-
-          {/* <AppLayout></AppLayout> */}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
