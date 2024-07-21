@@ -1,13 +1,4 @@
 export const constants = {
-  path: {
-    landing: '/',
-    home: '/home',
-    settings: '/settings',
-    editor: '/editor',
-    signIn: '/sign-in',
-    signUp: '/sign-up',
-  },
-
   externalLinks: {
     beastzVault: 'https://vault.beastz.dev',
   },

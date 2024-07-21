@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
 import { Inter as FontSans } from 'next/font/google';
 import { LandingPageContent } from '@/components/app/root';
-import { AppLayout } from '@/components/app/app-layout';
 
 import '../styles/globals.css';
 import '../styles/theme.css';
@@ -52,7 +51,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         suppressHydrationWarning
       >
         <ThemeProvider>
-          <AppLayout>{children}</AppLayout>
+          {children}
+
+          {/* <AppLayout></AppLayout> */}
         </ThemeProvider>
       </body>
     </html>

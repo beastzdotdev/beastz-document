@@ -2,9 +2,7 @@
 
 import * as themes from '@uiw/codemirror-themes-all';
 import CodeMirror, {
-  Annotation,
   Compartment,
-  EditorState,
   EditorView,
   Extension,
   Prec,
@@ -22,7 +20,6 @@ import {
   insertCompletionText,
   startCompletion,
 } from '@codemirror/autocomplete';
-import { getClientID, getSyncedVersion, receiveUpdates } from '@codemirror/collab';
 import {
   Select,
   SelectContent,

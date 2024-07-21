@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "next dev",
+    "dev:turbo": "next dev --turbo",
     "dev:server": "nodemon ./socket.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@codemirror/autocomplete": "^6.16.3",
+    "@codemirror/autocomplete": "^6.17.0",
     "@codemirror/collab": "^6.1.1",
     "@codemirror/lang-markdown": "^6.2.5",
     "@codemirror/language": "^6.10.2",
@@ -28,8 +29,8 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-switch": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@uiw/codemirror-themes-all": "^4.22.2",
-    "@uiw/react-codemirror": "^4.22.2",
+    "@uiw/codemirror-themes-all": "^4.23.0",
+    "@uiw/react-codemirror": "^4.23.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",

@@ -79,6 +79,11 @@
   color-scheme: only dark;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 .ͼp .cm-tooltip {
   border-bottom-color: rgb(69, 69, 69);
   border-bottom-left-radius: 3px;
