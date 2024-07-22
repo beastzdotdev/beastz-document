@@ -1,6 +1,14 @@
 export const constants = {
   externalLinks: {
     beastzVault: 'https://vault.beastz.dev',
+
+    get profileEdit() {
+      return `${this.beastzVault}/profile`;
+    },
+  },
+
+  headers: {
+    pathname: 'x-next-pathname',
   },
 
   ui: {

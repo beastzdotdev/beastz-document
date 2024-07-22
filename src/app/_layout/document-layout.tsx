@@ -1,3 +1,5 @@
+'use server';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import LogoSvg from '@/assets/document.svg';
@@ -5,24 +7,18 @@ import LogoSvg from '@/assets/document.svg';
 import { Icon } from '@iconify/react';
 import { constants } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ThemeModeToggle } from '@/components/theme/theme-mode-toggle';
 import { DocumentMenubar } from '@/app/document/[documentId]/_components/document-menu-bar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Profile } from '@/components/app/profile';
+import { ExternalLink } from '@/components/app/external-link';
+import { headers } from 'next/headers';
 
-type AppLayoutProps = {
+type Props = {
   children: React.ReactNode;
 };
 
-export const DocumentLayout = async ({ children }: AppLayoutProps) => {
+export const DocumentLayout = async ({ children }: Props) => {
   return (
     <>
       <div className="flex min-h-screen w-full flex-col h-full">
@@ -63,14 +59,7 @@ export const DocumentLayout = async ({ children }: AppLayoutProps) => {
                     </TooltipTrigger>
                     <TooltipContent>
                       All changes are saved in{' '}
-                      <a
-                        href={constants.externalLinks.beastzVault}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline"
-                      >
-                        Vault
-                      </a>
+                      <ExternalLink href={constants.externalLinks.beastzVault}>Vault</ExternalLink>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -92,29 +81,11 @@ export const DocumentLayout = async ({ children }: AppLayoutProps) => {
             <ThemeModeToggle />
 
             <Button variant="default" className="rounded-full">
-              <Icon icon="charm:share" className="mr-2 h-4 w-4" />
-              Share
+              <Icon icon="fluent:people-team-20-filled" className="mr-2 text-xl" />
+              Collab
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon" className="rounded-full">
-                  <Avatar>
-                    {/* {AvatarProfileUrl && <AvatarImage src={AvatarProfileUrl} />} */}
-                    <AvatarFallback>Gio</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Sign out</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Profile />
           </div>
         </header>
 
