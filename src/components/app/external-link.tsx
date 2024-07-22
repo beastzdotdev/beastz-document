@@ -1,11 +1,11 @@
+import { ReactPropsWithChildren } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-type Props = {
+type Props = ReactPropsWithChildren<{
   href: string;
-  children: React.ReactNode;
   className?: string;
   noUnderline?: boolean;
-};
+}>;
 
 export const ExternalLink = (props: Props): JSX.Element => {
   const { href, children, className, noUnderline } = props;

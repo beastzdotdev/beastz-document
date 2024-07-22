@@ -2,6 +2,7 @@
 
 import React, { createContext, useEffect, useState } from 'react';
 import { constants } from '@/lib/constants';
+import { ReactChildren } from '@/lib/types';
 
 type ThemeProviderState = {
   theme: string;
@@ -16,7 +17,7 @@ export const ThemeProviderContext = createContext<ThemeProviderState>({
   setTheme: () => null,
 });
 
-export default function ThemeProvider(props: { children: React.ReactNode }) {
+export default function ThemeProvider(props: ReactChildren): JSX.Element {
   const [theme, setTheme] = useState<string>(
     () => window.localStorage.getItem(storageKey) || defaultTheme
   );

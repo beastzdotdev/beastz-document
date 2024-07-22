@@ -4,10 +4,10 @@ import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
 import { Inter as FontSans } from 'next/font/google';
 import { LandingPageContent } from '@/app/_components/root';
-import { AppLayout } from '@/app/_layout/app-layout';
 
 import '../styles/globals.css';
 import '../styles/theme.css';
+import { ReactChildren } from '@/lib/types';
 
 const ThemeProvider = dynamic(() => import('@/components/theme/theme-provider'), { ssr: false });
 
@@ -21,7 +21,7 @@ const fontSans = FontSans({
   variable: '--font-sans',
 });
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function Layout({ children }: ReactChildren): Promise<JSX.Element> {
   //TODO: here
   const isAuthenticated = true;
 
@@ -53,9 +53,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}
         suppressHydrationWarning
       >
-        <ThemeProvider>
-          <AppLayout>{children}</AppLayout>
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

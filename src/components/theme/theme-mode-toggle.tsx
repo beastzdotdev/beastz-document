@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export const ThemeModeToggle = () => {
+export const ThemeModeToggle = (): JSX.Element => {
   const { theme, setTheme } = useTheme();
   const themeKeys = useMemo(() => Object.keys(constants.ui.themes), []);
 

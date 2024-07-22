@@ -8,12 +8,9 @@ import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
 import { ThemeModeToggle } from '@/components/theme/theme-mode-toggle';
 import { Profile } from '@/components/app/profile';
+import { ReactChildren } from '@/lib/types';
 
-type Props = {
-  children: React.ReactNode;
-};
-
-export const RegularLayout = async ({ children }: Props) => {
+export default async function RootLayout({ children }: ReactChildren): Promise<JSX.Element> {
   return (
     <>
       <div className="flex min-h-screen w-full flex-col h-full">
@@ -26,10 +23,6 @@ export const RegularLayout = async ({ children }: Props) => {
               <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-9" />
             </Link>
 
-            {/* <div className="flex flex-col pl-2">
-              <div className="pl-2 flex items-center gap-3">
-              </div>
-            </div> */}
             <p className="text-xl font-semibold text-nowrap tracking-tight flex items-center ml-3">
               Docs
             </p>
@@ -48,4 +41,4 @@ export const RegularLayout = async ({ children }: Props) => {
       </div>
     </>
   );
-};
+}

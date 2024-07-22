@@ -5,3 +5,6 @@ export type PageProps<T> = {
   params: T;
   searchParams: { [key: string]: string | string[] | undefined };
 };
+
+export type ReactChildren = Readonly<{ children: React.ReactNode }>;
+export type ReactPropsWithChildren<T> = Readonly<T & { children: React.ReactNode }>;

@@ -1,8 +1,9 @@
-import { constants } from '@/lib/constants';
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export default function middleware(request: NextRequest) {
+import { constants } from '@/lib/constants';
+import { NextResponse } from 'next/server';
+
+export default function middleware(request: NextRequest): NextResponse {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set(constants.headers.pathname, request.nextUrl.pathname);
 

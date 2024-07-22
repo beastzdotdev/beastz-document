@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export default function DashboardPage(): JSX.Element {
+export default async function DashboardPage(): Promise<JSX.Element> {
   return (
     <>
       <Link href={'/document/1'} className="underline">
