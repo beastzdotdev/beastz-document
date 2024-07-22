@@ -7,7 +7,6 @@ import LogoSvg from '@/assets/document.svg';
 import { Icon } from '@iconify/react';
 import { constants } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
-import { ThemeModeToggle } from '@/components/theme/theme-mode-toggle';
 import { DocumentMenubar } from '@/app/document/[documentId]/_components/document-menu-bar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Profile } from '@/components/app/profile';
@@ -64,16 +63,14 @@ export default async function DocumentLayout({ children }: ReactChildren): Promi
           </div>
         </div>
 
-        <div className="flex justify-end w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4 flex-1">
-          <Button size="icon" variant="outline" className="focus-visible:ring-0">
+        <div className="flex justify-end w-full items-center md:ml-auto gap-3 flex-1">
+          <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="ion:apps" className="text-xl" />
           </Button>
 
-          <Button size="icon" variant="outline" className="focus-visible:ring-0">
+          <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="icon-park-solid:comments" className="text-xl" />
           </Button>
-
-          <ThemeModeToggle />
 
           <Button variant="default" className="rounded-full">
             <Icon icon="fluent:people-team-20-filled" className="mr-2 text-xl" />

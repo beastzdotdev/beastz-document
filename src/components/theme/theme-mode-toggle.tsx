@@ -20,7 +20,7 @@ export const ThemeModeToggle = (): JSX.Element => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="outline">
+        <Button size="icon" variant="ghost">
           <Icon icon="mdi:theme" className="text-xl" />
         </Button>
       </DropdownMenuTrigger>

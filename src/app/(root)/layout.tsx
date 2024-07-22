@@ -14,13 +14,13 @@ export default async function RootLayout({ children }: ReactChildren): Promise<J
   return (
     <>
       <div className="flex min-h-screen w-full flex-col h-full">
-        <header className="top-0 flex items-center gap-4 border-b p-4">
+        <header className="top-0 flex items-center gap-4 border-b p-3">
           <div className="flex">
             <Link
               href={'/home'}
               className="flex items-center gap-2 text-lg font-semibold md:text-base"
             >
-              <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-9" />
+              <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-7" />
             </Link>
 
             <p className="text-xl font-semibold text-nowrap tracking-tight flex items-center ml-3">
@@ -28,11 +28,10 @@ export default async function RootLayout({ children }: ReactChildren): Promise<J
             </p>
           </div>
 
-          <div className="flex justify-end w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4 flex-1">
-            <Button size="icon" variant="outline" className="focus-visible:ring-0">
+          <div className="flex justify-end w-full items-center gap-3 flex-1">
+            <Button size="icon" variant="ghost" className="focus-visible:ring-0">
               <Icon icon="ion:apps" className="text-xl" />
             </Button>
-            <ThemeModeToggle />
             <Profile />
           </div>
         </header>
