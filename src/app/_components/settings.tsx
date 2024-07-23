@@ -20,13 +20,10 @@ export const SettingsProvider = ({ children }: ReactChildren): JSX.Element => {
   return (
     <>
       <CustomGlobalModal isOpen={isOpen} setIsOpen={setIsOpen}>
-        <Card className="p-4">
-          <h3 className="text-base/7 font-semibold">Payment successful</h3>
+        <Card className="p-4 min-w-[650px]">
+          <h1 className="text-xl font-semibold">Settings</h1>
 
-          <p className="mt-2 text-sm/6">
-            Your payment has been successfully submitted. We’ve sent you an email with all of the
-            details of your order.
-          </p>
+          <p className="mt-2 text-sm/6">in progress ...</p>
 
           <div className="mt-4">
             <Button onClick={() => setIsOpen(false)}>Got it, thanks!</Button>

@@ -6,7 +6,6 @@ import LogoSvg from '@/assets/document.svg';
 
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
-import { ThemeModeToggle } from '@/components/theme/theme-mode-toggle';
 import { Profile } from '@/components/app/profile';
 import { ReactChildren } from '@/lib/types';
 
@@ -23,8 +22,8 @@ export default async function RootLayout({ children }: ReactChildren): Promise<J
               <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-7" />
             </Link>
 
-            <p className="text-xl font-semibold text-nowrap tracking-tight flex items-center ml-3">
-              Docs
+            <p className="text-2xl font-normal text-nowrap tracking-tight flex items-center ml-3">
+              Documents
             </p>
           </div>
 

@@ -4,11 +4,10 @@ import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
 import { Inter as FontSans } from 'next/font/google';
 import { LandingPageContent } from '@/app/_components/root';
-
-import '../styles/globals.css';
-import '../styles/theme.css';
 import { ReactChildren } from '@/lib/types';
 import { SettingsProvider } from '@/app/_components/settings';
+
+import '@/styles/globals.css';
 
 const ThemeProvider = dynamic(() => import('@/components/theme/theme-provider'), { ssr: false });
 
@@ -19,6 +18,8 @@ export const metadata: Metadata = {
 
 const fontSans = FontSans({
   subsets: ['latin'],
+  display: 'swap',
+  preload: true,
   variable: '--font-sans',
 });
 

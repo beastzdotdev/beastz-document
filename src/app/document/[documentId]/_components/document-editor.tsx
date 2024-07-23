@@ -1,6 +1,7 @@
 'use client';
 
 import * as themes from '@uiw/codemirror-themes-all';
+import domtoimage from 'dom-to-image';
 import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { markdown } from '@codemirror/lang-markdown';
@@ -9,6 +10,7 @@ import { EditorTheme } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
 import { bus } from '@/lib/event-bus';
 import { copy } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 // const tempText = Text.of(['Hello'.repeat(10), 'Hello'.repeat(10)]).toString();
 export const tempText = Text.of([
@@ -56,17 +58,40 @@ export const DocumentEditor = (): JSX.Element => {
     });
   }, []);
 
+  //TODO: this is for images of documents in /home
+  //TODO: image must be collected asynchronously
+  const _DOMTOIMAGE = () => {
+    console.time('domtoimage');
+    const node = document.getElementById('123-xx');
+
+    domtoimage
+      .toJpeg(node!, { height: 400, quality: 1 })
+      .then(function (dataUrl: string) {
+        var link = document.createElement('a');
+        link.download = 'domtoimage.jpeg';
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch(function (error: unknown) {
+        console.error('oops, something went wrong!', error);
+      })
+      .finally(() => {
+        console.timeEnd('domtoimage');
+      });
+  };
+
   return (
     <>
       <CodeMirror
+        id="123-xx"
         ref={editor}
         value={tempText}
-        width="800px"
+        width="1050px"
         className="w-fit mx-auto h-full cm-custom"
         autoFocus
         spellCheck
         readOnly={false}
-        basicSetup={docConfigBundle.basicSetupOption}
+        basicSetup={{ ...docConfigBundle.basicSetupOption, lineNumbers: false }}
         extensions={extensions}
         theme={activeTheme}
       />
