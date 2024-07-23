@@ -1,3 +1,5 @@
+'use client';
+
 import { constants } from '@/lib/constants';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -10,14 +12,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ExternalLink } from '@/components/app/external-link';
+import { bus } from '@/lib/event-bus';
 
 export const Profile = (): JSX.Element => {
+  console.log('rerender profile');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="secondary" size="icon" className="rounded-full">
           <Avatar>
-            {/* {AvatarProfileUrl && <AvatarImage src={AvatarProfileUrl} />} */}
             <AvatarFallback>Gio</AvatarFallback>
           </Avatar>
         </Button>
@@ -31,7 +35,8 @@ export const Profile = (): JSX.Element => {
           <DropdownMenuItem>Profile</DropdownMenuItem>
         </ExternalLink>
 
-        <DropdownMenuItem>Settings</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => bus.publish('open:settings')}>Settings</DropdownMenuItem>
+
         <DropdownMenuSeparator />
         <DropdownMenuItem>Sign out</DropdownMenuItem>
       </DropdownMenuContent>

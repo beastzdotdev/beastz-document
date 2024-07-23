@@ -8,6 +8,7 @@ import { LandingPageContent } from '@/app/_components/root';
 import '../styles/globals.css';
 import '../styles/theme.css';
 import { ReactChildren } from '@/lib/types';
+import { SettingsProvider } from '@/app/_components/settings';
 
 const ThemeProvider = dynamic(() => import('@/components/theme/theme-provider'), { ssr: false });
 
@@ -53,7 +54,9 @@ export default async function Layout({ children }: ReactChildren): Promise<JSX.E
         className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}
         suppressHydrationWarning
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <SettingsProvider>{children}</SettingsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
