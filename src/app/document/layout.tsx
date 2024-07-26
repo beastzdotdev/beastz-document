@@ -8,20 +8,24 @@ import { Icon } from '@iconify/react';
 import { constants } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { DocumentMenubar } from '@/app/document/[documentId]/_components/document-menu-bar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Profile } from '@/components/app/profile';
 import { ExternalLink } from '@/components/app/external-link';
 import { ReactChildren } from '@/lib/types';
+import { BasicTooltip } from '@/components/app/basic-tooltip';
+
+const CloudSavedTooltipContent = () => (
+  <>
+    All changes are saved in{' '}
+    <ExternalLink href={constants.externalLinks.beastzVault}>Vault</ExternalLink>
+  </>
+);
 
 export default async function DocumentLayout({ children }: ReactChildren): Promise<JSX.Element> {
   return (
     <div className="flex min-h-screen w-full flex-col h-full">
       <header className="pt-2 top-0 flex items-center gap-4 border-b px-4 pb-1.5">
         <div className="flex">
-          <Link
-            href={'/home'}
-            className="flex items-center gap-2 text-lg font-semibold md:text-base"
-          >
+          <Link href="/home" className="flex items-center gap-2 text-lg font-semibold md:text-base">
             <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-9" />
           </Link>
 
@@ -31,32 +35,19 @@ export default async function DocumentLayout({ children }: ReactChildren): Promi
                 Sandbox Ultimate Edition
               </p>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Icon
-                      icon="ic:outline-drive-file-move"
-                      className="text-xl active:text-lg transition-all"
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>Move this file inside vault</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <BasicTooltip content="Move this file inside vault">
+                <Icon
+                  icon="ic:outline-drive-file-move"
+                  className="text-xl active:text-lg transition-all"
+                />
+              </BasicTooltip>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Icon
-                      icon="dashicons:cloud-saved"
-                      className="text-xl active:text-lg transition-all"
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    All changes are saved in{' '}
-                    <ExternalLink href={constants.externalLinks.beastzVault}>Vault</ExternalLink>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <BasicTooltip content={<CloudSavedTooltipContent />}>
+                <Icon
+                  icon="dashicons:cloud-saved"
+                  className="text-xl active:text-lg transition-all"
+                />
+              </BasicTooltip>
             </div>
 
             <DocumentMenubar />

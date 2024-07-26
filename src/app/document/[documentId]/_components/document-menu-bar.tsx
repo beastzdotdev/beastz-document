@@ -1,6 +1,12 @@
 'use client';
 
 import {
+  DeleteIcon,
+  DocumentIcon,
+  DocumentMarkdownIcon,
+  DocumentTextIcon,
+} from '@/components/icons';
+import {
   Menubar,
   MenubarCheckboxItem,
   MenubarContent,
@@ -13,7 +19,7 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from '@/components/ui/menubar';
-import { bus } from '@/lib/event-bus';
+import { bus } from '@/lib/bus';
 import { Icon } from '@iconify/react';
 
 export const DocumentMenubar = (): JSX.Element => {
@@ -26,21 +32,17 @@ export const DocumentMenubar = (): JSX.Element => {
         <MenubarContent>
           <MenubarSub>
             <MenubarSubTrigger>
-              <Icon icon="solar:document-linear" className="text-xl mr-1.5" />
+              <DocumentIcon className="mr-1.5" />
               New
             </MenubarSubTrigger>
             <MenubarSubContent>
               <MenubarItem>
-                <Icon icon="icon-park-outline:file-text" className="text-xl mr-1.5" />
+                <DocumentTextIcon className="mr-1.5" />
                 Document Text
               </MenubarItem>
               <MenubarItem>
-                <Icon icon="ant-design:file-markdown-filled" className="text-xl mr-1.5" />
+                <DocumentMarkdownIcon className="mr-1.5" />
                 Document Markdown
-              </MenubarItem>
-              <MenubarItem>
-                <Icon icon="carbon:template" className="text-xl mr-1.5" />
-                From Template
               </MenubarItem>
             </MenubarSubContent>
           </MenubarSub>
@@ -114,7 +116,7 @@ export const DocumentMenubar = (): JSX.Element => {
             <Icon icon="tabler:cut" className="text-xl mr-1.5" />
             Cut <MenubarShortcut>⌘X</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem onClick={() => bus.publish('editor:copy')}>
+          <MenubarItem onClick={() => bus.emit('editor:copy')}>
             <Icon icon="ph:copy" className="text-xl mr-1.5" />
             Copy <MenubarShortcut>⌘C</MenubarShortcut>
           </MenubarItem>
@@ -124,13 +126,13 @@ export const DocumentMenubar = (): JSX.Element => {
           </MenubarItem>
           <MenubarSeparator />
 
-          <MenubarItem onClick={() => bus.publish('editor:selectAll')}>
+          <MenubarItem onClick={() => bus.emit('editor:select-all')}>
             <Icon icon="fluent:select-all-on-24-regular" className="text-xl mr-1.5" />
             Select All <MenubarShortcut>⌘A</MenubarShortcut>
           </MenubarItem>
 
           <MenubarItem>
-            <Icon icon="solar:trash-bin-2-outline" className="text-xl mr-1.5" />
+            <DeleteIcon className="mr-1.5" />
             Delete
           </MenubarItem>
           <MenubarSeparator />

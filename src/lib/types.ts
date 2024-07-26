@@ -8,3 +8,23 @@ export type PageProps<T> = {
 
 export type ReactChildren = Readonly<{ children: React.ReactNode }>;
 export type ReactPropsWithChildren<T> = Readonly<T & { children: React.ReactNode }>;
+
+export type Combine<T, U> = T & U;
+export type Pagination<T> = {
+  data: T[];
+  total: number;
+};
+export type BasicMessageResponse<T = string> = {
+  message: T;
+};
+export type GeneralClass<T = unknown> = {
+  new (...args: never[]): T;
+};
+export type MappedRecord<T> = {
+  [key in keyof T]: T[key];
+};
+export type BusPayload<T = unknown> = {
+  message: string;
+  data?: T;
+  uuid?: string;
+};

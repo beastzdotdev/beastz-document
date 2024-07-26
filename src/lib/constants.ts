@@ -25,4 +25,9 @@ export const constants = {
       Vulcano: 'vulcano',
     },
   },
+
+  general: {
+    localStorageViewTypeKey: 'default_items_view',
+    queryTitleForDocument: 'title',
+  },
 };

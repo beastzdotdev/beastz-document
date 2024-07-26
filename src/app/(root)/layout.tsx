@@ -19,7 +19,12 @@ export default async function RootLayout({ children }: ReactChildren): Promise<J
               href={'/home'}
               className="flex items-center gap-2 text-lg font-semibold md:text-base"
             >
-              <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-7" />
+              <Image
+                src={LogoSvg}
+                priority
+                alt="Follow us on Twitter"
+                className="w-7 select-none"
+              />
             </Link>
 
             <p className="text-2xl font-normal text-nowrap tracking-tight flex items-center ml-3">
@@ -28,6 +33,11 @@ export default async function RootLayout({ children }: ReactChildren): Promise<J
           </div>
 
           <div className="flex justify-end w-full items-center gap-3 flex-1">
+            <Button variant="default" className="rounded-full">
+              <Icon icon="ic:round-plus" className="mr-2 text-xl" />
+              Create
+            </Button>
+
             <Button size="icon" variant="ghost" className="focus-visible:ring-0">
               <Icon icon="ion:apps" className="text-xl" />
             </Button>

@@ -3,16 +3,15 @@
 import { ReactChildren } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import { bus } from '@/lib/event-bus';
 import { Card } from '@/components/ui/card';
 import { CustomGlobalModal } from '@/components/ui/custom-global-modal';
+import { bus } from '@/lib/bus';
 
-export const SettingsProvider = ({ children }: ReactChildren): JSX.Element => {
+export const OpenFileModalProvider = ({ children }: ReactChildren): JSX.Element => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    bus.subscribe('open:settings', () => {
-      console.log('open:settings');
+    bus.on('open:file-modal', () => {
       setIsOpen(() => true);
     });
   }, []);
@@ -21,7 +20,7 @@ export const SettingsProvider = ({ children }: ReactChildren): JSX.Element => {
     <>
       <CustomGlobalModal isOpen={isOpen} setIsOpen={setIsOpen}>
         <Card className="p-4 min-w-[650px]">
-          <h1 className="text-xl font-semibold">Settings</h1>
+          <h1 className="text-xl font-semibold">Open view</h1>
 
           <p className="mt-2 text-sm/6">in progress ...</p>
 

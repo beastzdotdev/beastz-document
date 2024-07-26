@@ -3,6 +3,8 @@
 import { constants } from '@/lib/constants';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { ExternalLink } from '@/components/app/external-link';
+import { bus } from '@/lib/bus';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,12 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ExternalLink } from '@/components/app/external-link';
-import { bus } from '@/lib/event-bus';
 
 export const Profile = (): JSX.Element => {
-  console.log('rerender profile');
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,7 +33,7 @@ export const Profile = (): JSX.Element => {
           <DropdownMenuItem>Profile</DropdownMenuItem>
         </ExternalLink>
 
-        <DropdownMenuItem onClick={() => bus.publish('open:settings')}>Settings</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => bus.emit('open:settings')}>Settings</DropdownMenuItem>
 
         <DropdownMenuSeparator />
         <DropdownMenuItem>Sign out</DropdownMenuItem>

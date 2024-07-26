@@ -8,9 +8,8 @@ import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EditorTheme } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { bus } from '@/lib/event-bus';
 import { copy } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { bus } from '@/lib/bus';
 
 // const tempText = Text.of(['Hello'.repeat(10), 'Hello'.repeat(10)]).toString();
 export const tempText = Text.of([
@@ -33,13 +32,13 @@ export const DocumentEditor = (): JSX.Element => {
   );
 
   useEffect(() => {
-    bus.subscribe('editor:selectAll', () => {
+    bus.on('editor:select-all', () => {
       editor.current?.view.dispatch({
         selection: { anchor: 0, head: tempText.length },
       });
     });
 
-    bus.subscribe('editor:copy', () => {
+    bus.on('editor:copy', () => {
       if (!editor.current) {
         return;
       }

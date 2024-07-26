@@ -1,15 +1,10 @@
-import Link from 'next/link';
+import { OpenFileModalProvider } from '@/app/(root)/home/_components/open-file-modal-provider';
+import { DashboardRoot } from '@/app/(root)/home/_components/root';
 
 export default async function DashboardPage(): Promise<JSX.Element> {
   return (
-    <>
-      <Link href={'/document/1'} className="underline">
-        Doc Link 1
-      </Link>
-      <br />
-      <Link href={'/settings'} className="underline">
-        Settings
-      </Link>
-    </>
+    <OpenFileModalProvider>
+      <DashboardRoot />
+    </OpenFileModalProvider>
   );
 }

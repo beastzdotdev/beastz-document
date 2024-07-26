@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Inter as FontSans } from 'next/font/google';
 import { LandingPageContent } from '@/app/_components/root';
 import { ReactChildren } from '@/lib/types';
-import { SettingsProvider } from '@/app/_components/settings';
+import { SettingsModalProvider } from '@/app/_components/settings-modal-provider';
 
 import '@/styles/globals.css';
 
@@ -56,7 +56,7 @@ export default async function Layout({ children }: ReactChildren): Promise<JSX.E
         suppressHydrationWarning
       >
         <ThemeProvider>
-          <SettingsProvider>{children}</SettingsProvider>
+          <SettingsModalProvider>{children}</SettingsModalProvider>
         </ThemeProvider>
       </body>
     </html>
