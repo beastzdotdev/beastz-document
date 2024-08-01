@@ -16,6 +16,6 @@ export const exactStringToNumber = z
   .transform(v => parseInt(v))
   .pipe(z.number());
 
-export const copy = (text: string) => {
+export const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text);
 };

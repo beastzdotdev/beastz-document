@@ -1,17 +1,19 @@
 'use client';
 
 import * as themes from '@uiw/codemirror-themes-all';
-import domtoimage from 'dom-to-image';
+
 import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EditorTheme } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { copy } from '@/lib/utils';
+import { copyToClipboard } from '@/lib/utils';
 import { bus } from '@/lib/bus';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@iconify/react/dist/iconify.js';
 
-// const tempText = Text.of(['Hello'.repeat(10), 'Hello'.repeat(10)]).toString();
 export const tempText = Text.of([
   'Hello',
   'World',
@@ -20,8 +22,11 @@ export const tempText = Text.of([
 ]).toString();
 
 export const DocumentEditor = (): JSX.Element => {
+  console.log('rerender');
+
   const [theme, _setTheme] = useState<EditorTheme>('dark');
   const editor = useRef<{ view: EditorView }>(null);
+
   const extensions: Extension[] = useMemo(
     () => docConfigBundle.getAllExtension().concat(markdown({ codeLanguages: languages })),
     []
@@ -31,53 +36,78 @@ export const DocumentEditor = (): JSX.Element => {
     [theme]
   );
 
-  useEffect(() => {
-    bus.on('editor:select-all', () => {
-      editor.current?.view.dispatch({
-        selection: { anchor: 0, head: tempText.length },
-      });
-    });
-
-    bus.on('editor:copy', () => {
-      if (!editor.current) {
-        return;
-      }
-
-      const selection = editor.current.view.state.selection.main;
-
-      if (!selection || selection.empty) {
-        //TODO: show appropriate message toast
-        return;
-      }
-
-      const text = editor.current.view.state.sliceDoc(selection.from, selection.to);
-      copy(text);
-      console.log(text);
-      //TODO: show appropriate message toast
+  const selectAll = useCallback(() => {
+    editor.current?.view.dispatch({
+      selection: { anchor: 0, head: tempText.length },
     });
   }, []);
 
-  //TODO: this is for images of documents in /home
-  //TODO: image must be collected asynchronously
-  const _DOMTOIMAGE = () => {
-    console.time('domtoimage');
-    const node = document.getElementById('123-xx');
+  const copySelected = useCallback(() => {
+    if (!editor.current) {
+      return;
+    }
 
-    domtoimage
-      .toJpeg(node!, { height: 400, quality: 1 })
-      .then(function (dataUrl: string) {
-        var link = document.createElement('a');
-        link.download = 'domtoimage.jpeg';
-        link.href = dataUrl;
-        link.click();
-      })
-      .catch(function (error: unknown) {
-        console.error('oops, something went wrong!', error);
-      })
-      .finally(() => {
-        console.timeEnd('domtoimage');
-      });
-  };
+    const selection = editor.current.view.state.selection.main;
+
+    if (!selection || selection.empty) {
+      toast.warning('Nothing was selected', { position: 'top-right' });
+      return;
+    }
+
+    const text = editor.current.view.state.sliceDoc(selection.from, selection.to);
+    copyToClipboard(text);
+
+    toast.success('Copied to clipboard', {
+      position: 'top-right',
+      duration: 3000,
+      cancel: {
+        label: <Icon icon="ic:round-close" fontSize={18} />,
+        onClick: () => {},
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    bus.on('editor:select-all', selectAll);
+    bus.on('editor:copy', copySelected);
+  }, [copySelected, selectAll]);
+
+  // useEffect(() => {
+  //   async function onConnect() {
+  //     setIsConnected(true);
+  //     setTransport(socket.io.engine.transport.name);
+
+  //     socket.io.engine.on('upgrade', transport => {
+  //       setTransport(transport.name);
+  //     });
+
+  //     const { version, doc } = await getDocument(socket);
+
+  //     setVersion(version);
+  //     setDoc(doc);
+  //   }
+
+  //   function onDisconnect() {
+  //     setIsConnected(false);
+  //     setTransport('N/A');
+  //   }
+
+  //   ///======================
+  //   if (socket.connected) {
+  //     onConnect();
+  //   }
+
+  //   socket.on('connect', onConnect);
+  //   socket.on('disconnect', onDisconnect);
+
+  //   return () => {
+  //     socket.off('connect');
+  //     socket.off('disconnect');
+  //     socket.off('pullUpdateResponse');
+  //     socket.off('pushUpdateResponse');
+  //     socket.off('getDocumentResponse');
+  //   };
+  // }, []);
 
   return (
     <>
