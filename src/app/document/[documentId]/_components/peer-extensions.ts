@@ -13,6 +13,7 @@ import {
   ViewUpdate,
   Text,
   Compartment,
+  Extension,
 } from '@uiw/react-codemirror';
 
 const pushUpdates = (
@@ -28,7 +29,9 @@ const pushUpdates = (
   }));
 
   return new Promise(function (resolve) {
-    socket.emit('pushUpdates', version, JSON.stringify(updates));
+    // socket.emit('pushUpdates', version, JSON.stringify(updates));
+    socket.emit('pushUpdates', { version, updates });
+    // socket.emit('pushUpdates', { version, updates: JSON.stringify(updates) });
 
     socket.once('pushUpdateResponse', function (status: boolean) {
       resolve(status);
@@ -51,8 +54,8 @@ const pullUpdates = async (socket: Socket, version: number): Promise<readonly Up
   );
 };
 
-const peerExtensionPlugin = (socket: Socket) => {
-  return ViewPlugin.fromClass(
+export const peerExtension = (socket: Socket, startVersion: number) => {
+  const plugin = ViewPlugin.fromClass(
     class {
       private pushing = false;
       private done = false;
@@ -72,9 +75,10 @@ const peerExtensionPlugin = (socket: Socket) => {
         const version = getSyncedVersion(this.view.state);
         const success = await pushUpdates(socket, version, updates);
         this.pushing = false;
+
         // Regardless of whether the push failed or new updates came in
         // while it was running, try again if there's updates remaining
-        if (sendableUpdates(this.view.state).length) setTimeout(() => this.push(), 100);
+        if (sendableUpdates(this.view.state).length) setTimeout(() => this.push(), 1000);
       }
 
       async pull() {
@@ -93,13 +97,12 @@ const peerExtensionPlugin = (socket: Socket) => {
       }
     }
   );
+
+  return [collab({ startVersion }), plugin];
 };
 
 export const peerExtensionCompartment = new Compartment();
-export const peerExtension = (socket: Socket, startVersion: number) => {
-  const ext = [collab({ startVersion }), peerExtensionPlugin(socket)];
-  return peerExtensionCompartment.of(ext);
-};
+
 export const getDocument = (socket: Socket): Promise<{ version: number; doc: Text }> =>
   new Promise(resolve => {
     socket.emit('getDocument');

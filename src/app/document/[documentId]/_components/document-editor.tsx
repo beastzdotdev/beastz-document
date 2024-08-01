@@ -11,8 +11,13 @@ import { docConfigBundle } from '@/components/app/editor/extensions';
 import { copyToClipboard } from '@/lib/utils';
 import { bus } from '@/lib/bus';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react/dist/iconify.js';
+import { socket } from '@/app/socket';
+import {
+  getDocument,
+  peerExtension,
+  peerExtensionCompartment,
+} from '@/app/document/[documentId]/_components/peer-extensions';
 
 export const tempText = Text.of([
   'Hello',
@@ -27,10 +32,17 @@ export const DocumentEditor = (): JSX.Element => {
   const [theme, _setTheme] = useState<EditorTheme>('dark');
   const editor = useRef<{ view: EditorView }>(null);
 
+  const [version, setVersion] = useState<number>();
+  const [doc, setDoc] = useState<Text>();
+
   const extensions: Extension[] = useMemo(
-    () => docConfigBundle.getAllExtension().concat(markdown({ codeLanguages: languages })),
+    () =>
+      docConfigBundle
+        .getAllExtension()
+        .concat(markdown({ codeLanguages: languages }), peerExtensionCompartment.of([])),
     []
   );
+
   const activeTheme = useMemo(
     () => (themes[theme as keyof typeof themes] || theme) as EditorTheme,
     [theme]
@@ -72,49 +84,49 @@ export const DocumentEditor = (): JSX.Element => {
     bus.on('editor:copy', copySelected);
   }, [copySelected, selectAll]);
 
-  // useEffect(() => {
-  //   async function onConnect() {
-  //     setIsConnected(true);
-  //     setTransport(socket.io.engine.transport.name);
+  useEffect(() => {
+    socket.on('connect', async () => {
+      const { version, doc } = await getDocument(socket);
 
-  //     socket.io.engine.on('upgrade', transport => {
-  //       setTransport(transport.name);
-  //     });
+      setVersion(version);
+      setDoc(doc);
+    });
 
-  //     const { version, doc } = await getDocument(socket);
+    socket.on('disconnect', () => {
+      console.log('Disconnected');
+    });
 
-  //     setVersion(version);
-  //     setDoc(doc);
-  //   }
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('pullUpdateResponse');
+      socket.off('pushUpdateResponse');
+      socket.off('getDocumentResponse');
+    };
+  }, []);
 
-  //   function onDisconnect() {
-  //     setIsConnected(false);
-  //     setTransport('N/A');
-  //   }
+  //! This is how to activate extension without rerendering component
+  useEffect(() => {
+    if (!editor.current?.view) {
+      return;
+    }
 
-  //   ///======================
-  //   if (socket.connected) {
-  //     onConnect();
-  //   }
+    if (version !== undefined) {
+      console.log('Registering once peer extension');
+      console.log('='.repeat(40));
 
-  //   socket.on('connect', onConnect);
-  //   socket.on('disconnect', onDisconnect);
-
-  //   return () => {
-  //     socket.off('connect');
-  //     socket.off('disconnect');
-  //     socket.off('pullUpdateResponse');
-  //     socket.off('pushUpdateResponse');
-  //     socket.off('getDocumentResponse');
-  //   };
-  // }, []);
+      editor.current.view.dispatch({
+        effects: peerExtensionCompartment.reconfigure(peerExtension(socket, version)),
+      });
+    }
+  }, [version]);
 
   return (
     <>
       <CodeMirror
         id="123-xx"
         ref={editor}
-        value={tempText}
+        value={doc?.toString()}
         width="1050px"
         className="w-fit mx-auto h-full cm-custom"
         autoFocus
