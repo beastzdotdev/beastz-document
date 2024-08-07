@@ -28,3 +28,7 @@ export const DeleteIcon = ({ className }: Props): JSX.Element => (
 export const OpenNewTab = ({ className }: Props): JSX.Element => (
   <Icon icon="fluent:window-new-16-regular" className={cn(`text-xl`, className)} />
 );
+
+export const LoadingIcon = ({ className }: Props): JSX.Element => (
+  <Icon icon="line-md:loading-twotone-loop" className={cn(`text-xl`, className)} />
+);

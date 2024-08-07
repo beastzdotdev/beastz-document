@@ -1,6 +1,7 @@
 import z from 'zod';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { GeneralEnumType } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -19,3 +20,11 @@ export const exactStringToNumber = z
 export const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text);
 };
+
+export const sleep = async (time: number = 1000) => {
+  return await new Promise(f => setTimeout(f, time));
+};
+
+export function enumValueIncludes<E extends GeneralEnumType<E>>(someEnum: E, value: string) {
+  return Object.values(someEnum).includes(value);
+}

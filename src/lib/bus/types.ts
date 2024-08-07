@@ -5,6 +5,7 @@ export type BusEvents = {
   'open:settings': () => void;
   'editor:select-all': () => void;
   'editor:copy': () => void;
+  'socket:connected': () => void;
 
   // examples
   // 'show-alert': (params: { message: BusMessageType; onClose?: () => void }) => void;

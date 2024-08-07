@@ -2,9 +2,8 @@ import domtoimage from 'dom-to-image';
 
 //TODO: this is for images of documents in /home
 //TODO: image must be collected asynchronously
-export const _DOMTOIMAGE = () => {
+export const _DOMTOIMAGE = (node: HTMLElement) => {
   console.time('domtoimage');
-  const node = document.getElementById('123-xx');
 
   domtoimage
     .toJpeg(node!, { height: 400, quality: 1 })

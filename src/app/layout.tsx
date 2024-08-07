@@ -59,7 +59,7 @@ export default async function Layout({ children }: ReactChildren): Promise<JSX.E
         <ThemeProvider>
           <>
             <SettingsModalProvider>{children}</SettingsModalProvider>
-            <Toaster position="bottom-right" />
+            <Toaster />
           </>
         </ThemeProvider>
       </body>

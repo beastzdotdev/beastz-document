@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('pushUpdates', (version, docUpdates) => {
+  socket.on('pushUpdates', ({ version, docUpdates }) => {
     console.log('pushUpdates' + '---' + socket.id);
     console.log(version);
     console.log(docUpdates);

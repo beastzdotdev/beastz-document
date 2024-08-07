@@ -6,18 +6,19 @@ import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { EditorTheme } from '@/lib/types';
+import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { copyToClipboard } from '@/lib/utils';
+import { copyToClipboard, enumValueIncludes } from '@/lib/utils';
 import { bus } from '@/lib/bus';
 import { toast } from 'sonner';
 import { Icon } from '@iconify/react/dist/iconify.js';
-import { socket } from '@/app/socket';
 import {
   getDocument,
   peerExtension,
   peerExtensionCompartment,
 } from '@/app/document/[documentId]/_components/peer-extensions';
+import { docEditSocket } from '@/app/document/[documentId]/_components/socket';
+import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
 
 export const tempText = Text.of([
   'Hello',
@@ -62,21 +63,15 @@ export const DocumentEditor = (): JSX.Element => {
     const selection = editor.current.view.state.selection.main;
 
     if (!selection || selection.empty) {
-      toast.warning('Nothing was selected', { position: 'top-right' });
+      toast.warning('Nothing was selected');
       return;
     }
 
     const text = editor.current.view.state.sliceDoc(selection.from, selection.to);
     copyToClipboard(text);
 
-    toast.success('Copied to clipboard', {
-      position: 'top-right',
-      duration: 3000,
-      cancel: {
-        label: <Icon icon="ic:round-close" fontSize={18} />,
-        onClick: () => {},
-      },
-    });
+    toast.success('Copied to clipboard');
+    return;
   }, []);
 
   useEffect(() => {
@@ -85,23 +80,55 @@ export const DocumentEditor = (): JSX.Element => {
   }, [copySelected, selectAll]);
 
   useEffect(() => {
-    socket.on('connect', async () => {
-      const { version, doc } = await getDocument(socket);
+    //TODO health check for refresh token rotation or anything before connecting to socket
+    docEditSocket.on('connect', async () => {
+      bus.emit('socket:connected');
 
+      // get latest doc version
+      const { version, doc } = await getDocument(docEditSocket);
       setVersion(version);
       setDoc(doc);
     });
+    docEditSocket.on('disconnect', () => {
+      console.log('DISCONNECTED');
+      console.log(reason); // prints "io client disconnect"
+    });
+    docEditSocket.on('error', (err: Error) => {
+      console.log('ERROR');
+      console.log(error);
+    });
+    docEditSocket.on('connect_error', (err: SocketError) => {
+      console.log('CONNECT_ERROR');
+      console.dir(err);
 
-    socket.on('disconnect', () => {
-      console.log('Disconnected');
+      if (!err?.message) {
+        toast.warning('Something went wrong, please try again');
+        return;
+      }
+
+      if (enumValueIncludes(ExceptionMessageCode, err.message)) {
+        toast.warning(err.message); //TODO: appropriate messages
+        return;
+      }
+
+      toast.warning('Something went wrong, please try again');
+    });
+    docEditSocket.on('connect_failed', (err: Error) => {
+      console.log('='.repeat(20) + 'connect_failed');
+      console.log(err);
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('pullUpdateResponse');
-      socket.off('pushUpdateResponse');
-      socket.off('getDocumentResponse');
+      docEditSocket.off('connect');
+      docEditSocket.off('disconnect');
+
+      docEditSocket.off('error');
+      docEditSocket.off('connect_error');
+      docEditSocket.off('connect_failed');
+
+      docEditSocket.off('pullUpdateResponse');
+      docEditSocket.off('pushUpdateResponse');
+      docEditSocket.off('getDocumentResponse');
     };
   }, []);
 
@@ -111,12 +138,15 @@ export const DocumentEditor = (): JSX.Element => {
       return;
     }
 
+    console.log(123);
+
     if (version !== undefined) {
+      console.log(321);
       console.log('Registering once peer extension');
       console.log('='.repeat(40));
 
       editor.current.view.dispatch({
-        effects: peerExtensionCompartment.reconfigure(peerExtension(socket, version)),
+        effects: peerExtensionCompartment.reconfigure(peerExtension(docEditSocket, version)),
       });
     }
   }, [version]);
@@ -124,7 +154,6 @@ export const DocumentEditor = (): JSX.Element => {
   return (
     <>
       <CodeMirror
-        id="123-xx"
         ref={editor}
         value={doc?.toString()}
         width="1050px"

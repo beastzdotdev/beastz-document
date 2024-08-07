@@ -12,6 +12,9 @@ import { Profile } from '@/components/app/profile';
 import { ExternalLink } from '@/components/app/external-link';
 import { ReactChildren } from '@/lib/types';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
+import { CollabButton } from '@/app/document/_components/collab-button';
+import { JoinedPeople } from '@/app/document/_components/joined-people';
+import { ConnectionIndicator } from '@/app/document/_components/connection-indicator';
 
 const CloudSavedTooltipContent = () => (
   <>
@@ -21,6 +24,13 @@ const CloudSavedTooltipContent = () => (
 );
 
 export default async function DocumentLayout({ children }: ReactChildren): Promise<JSX.Element> {
+  const people: { name: string }[] = [
+    // /
+    { name: 'John' },
+    { name: 'Jane' },
+    { name: 'Jack' },
+  ];
+
   return (
     <div className="flex min-h-screen w-full flex-col h-full">
       <header className="pt-2 top-0 flex items-center gap-4 border-b px-4 pb-1.5">
@@ -48,6 +58,8 @@ export default async function DocumentLayout({ children }: ReactChildren): Promi
                   className="text-xl active:text-lg transition-all"
                 />
               </BasicTooltip>
+
+              <ConnectionIndicator />
             </div>
 
             <DocumentMenubar />
@@ -58,16 +70,11 @@ export default async function DocumentLayout({ children }: ReactChildren): Promi
           <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="ion:apps" className="text-xl" />
           </Button>
-
           <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="icon-park-solid:comments" className="text-xl" />
           </Button>
-
-          <Button variant="default" className="rounded-full">
-            <Icon icon="fluent:people-team-20-filled" className="mr-2 text-xl" />
-            Collab
-          </Button>
-
+          <JoinedPeople people={people} />
+          <CollabButton people={people} />
           <Profile />
         </div>
       </header>

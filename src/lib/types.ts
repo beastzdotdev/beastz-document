@@ -1,3 +1,4 @@
+import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
 import { ReactCodeMirrorProps } from '@uiw/react-codemirror';
 
 export type EditorTheme = ReactCodeMirrorProps['theme'];
@@ -28,3 +29,10 @@ export type BusPayload<T = unknown> = {
   data?: T;
   uuid?: string;
 };
+
+export class SocketError extends Error {
+  message: ExceptionMessageCode | string;
+  data?: { description?: string };
+}
+
+export type GeneralEnumType<E> = Record<keyof E, number | string> & { [k: number]: string };

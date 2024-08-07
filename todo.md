@@ -1,4 +1,4 @@
-
+TODO: load doc cards via server component when images are loaded and added clint stuff then;
 
 #### for landing pages links
 TODO: make original website like this https://dockit.geekfun.club/

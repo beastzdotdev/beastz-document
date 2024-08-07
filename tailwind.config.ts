@@ -19,6 +19,9 @@ const config = {
       },
     },
     extend: {
+      inset: {
+        initial: 'initial',
+      },
       fontFamily: {
         sans: ['var(--font-sans)', ...fontFamily.sans],
       },

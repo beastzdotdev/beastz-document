@@ -1,0 +1,119 @@
+'use client';
+
+import { Icon } from '@iconify/react';
+import { Button } from '@/components/ui/button';
+import { docEditSocket } from '@/app/document/[documentId]/_components/socket';
+import { useCallback, useEffect, useState } from 'react';
+import { LoadingIcon } from '@/components/icons';
+import { bus } from '@/lib/bus';
+import { copyToClipboard, sleep } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { toast } from 'sonner';
+
+const url = 'https://joincollab/join?toke=asdas121koks102120s1k10ks019291k109';
+
+export const CollabButton = ({ people }: { people: { name: string }[] }) => {
+  const [loading, setLoading] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const onClick = useCallback(() => {
+    if (docEditSocket.connected) {
+      return;
+    }
+
+    setLoading(true);
+
+    console.log('attempting to connect');
+
+    // health check before connecting to socket
+    docEditSocket.connect();
+  }, []);
+
+  const onCopy = useCallback(async () => {
+    setIsCopied(true);
+    copyToClipboard(url);
+
+    toast.success('Copied to clipboard');
+  }, []);
+
+  useEffect(() => {
+    // native listener in different file !
+    bus.on('socket:connected', async () => {
+      await sleep(1000);
+      setLoading(false);
+      setConnected(true);
+      setIsPopoverOpen(true);
+    });
+  }, []);
+
+  return (
+    <>
+      <Button
+        onClick={() => {
+          docEditSocket.emit('test');
+        }}
+      >
+        test
+      </Button>
+      <Button
+        onClick={() => {
+          docEditSocket.disconnect();
+        }}
+      >
+        disconnect
+      </Button>
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        {connected ? (
+          <PopoverTrigger asChild>
+            <Button variant="default" className="rounded-full">
+              <Icon icon="fluent:people-team-20-filled" className="mr-2 text-xl" />
+              Collab
+            </Button>
+          </PopoverTrigger>
+        ) : (
+          <Button variant="default" className="rounded-full" onClick={onClick} disabled={loading}>
+            <span className="w-7">
+              {loading ? (
+                <LoadingIcon className="mr-2" />
+              ) : (
+                <Icon icon="fluent:people-team-20-filled" className="mr-2 text-xl" />
+              )}
+            </span>
+            Collab
+          </Button>
+        )}
+
+        <PopoverContent
+          className="p-1.5 min-w-80 mr-16 mt-2"
+          onCloseAutoFocus={() => setIsCopied(false)}
+        >
+          <div>
+            <Alert className="border-none">
+              <Icon icon="mdi:invite" className="text-xl !top-3" />
+              <AlertTitle>Invite Link</AlertTitle>
+              <AlertDescription className="text-muted-foreground">
+                <div>Do not share this link with anyone you do not want to collaborate with !</div>
+                <div className="flex w-full items-center space-x-2 mt-3">
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    className="flex-1 cursor-default"
+                    value="https://joincollab/join?toke=asdas121koks102120s1k10ks019291k109"
+                    readOnly
+                  />
+                  <Button type="submit" onClick={onCopy} className="w-16">
+                    {isCopied ? 'Copied' : 'Copy'}
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </>
+  );
+};
