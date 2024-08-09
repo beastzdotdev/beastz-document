@@ -3,12 +3,11 @@ import dynamic from 'next/dynamic';
 
 import { cn } from '@/lib/utils';
 import { Inter as FontSans } from 'next/font/google';
-import { LandingPageContent } from '@/app/_components/root';
 import { ReactChildren } from '@/lib/types';
 import { Toaster } from '@/components/ui/sonner';
-import { SettingsModalProvider } from '@/app/_components/settings-modal-provider';
 
 import '@/styles/globals.css';
+import { SettingsModalProvider } from '@/app/(auth)/_components/settings-modal-provider';
 
 const ThemeProvider = dynamic(() => import('@/components/theme/theme-provider'), { ssr: false });
 
@@ -25,21 +24,6 @@ const fontSans = FontSans({
 });
 
 export default async function Layout({ children }: ReactChildren): Promise<JSX.Element> {
-  //TODO: here
-  const isAuthenticated = true;
-
-  if (!isAuthenticated) {
-    return (
-      <>
-        <html lang="en">
-          <body>
-            <LandingPageContent />
-          </body>
-        </html>
-      </>
-    );
-  }
-
   return (
     <html lang="en">
       <head>

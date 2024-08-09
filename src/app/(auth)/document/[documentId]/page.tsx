@@ -1,7 +1,7 @@
-import { DocumentByIdPageParams } from '@/app/document/[documentId]/types';
-import { DocumentEditor } from '@/app/document/[documentId]/_components/document-editor';
 import { Metadata, ResolvingMetadata } from 'next';
 import { constants } from '@/lib/constants';
+import { DocumentByIdPageParams } from '@/app/(auth)/document/[documentId]/types';
+import { DocumentEditor } from '@/app/(auth)/document/[documentId]/_components/document-editor';
 
 export async function generateMetadata(
   props: DocumentByIdPageParams,

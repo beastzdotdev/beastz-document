@@ -11,14 +11,14 @@ import { docConfigBundle } from '@/components/app/editor/extensions';
 import { copyToClipboard, enumValueIncludes } from '@/lib/utils';
 import { bus } from '@/lib/bus';
 import { toast } from 'sonner';
-import { Icon } from '@iconify/react/dist/iconify.js';
+import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
+import { Button } from '@/components/ui/button';
+import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 import {
   getDocument,
   peerExtension,
   peerExtensionCompartment,
-} from '@/app/document/[documentId]/_components/peer-extensions';
-import { docEditSocket } from '@/app/document/[documentId]/_components/socket';
-import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
+} from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
 
 export const tempText = Text.of([
   'Hello',
@@ -35,6 +35,7 @@ export const DocumentEditor = (): JSX.Element => {
 
   const [version, setVersion] = useState<number>();
   const [doc, setDoc] = useState<Text>();
+  const retryCount = useRef(0);
 
   const extensions: Extension[] = useMemo(
     () =>
@@ -91,27 +92,37 @@ export const DocumentEditor = (): JSX.Element => {
     });
     docEditSocket.on('disconnect', () => {
       console.log('DISCONNECTED');
-      console.log(reason); // prints "io client disconnect"
     });
     docEditSocket.on('error', (err: Error) => {
       console.log('ERROR');
-      console.log(error);
+      console.log(err);
     });
     docEditSocket.on('connect_error', (err: SocketError) => {
-      console.log('CONNECT_ERROR');
+      console.log(123);
+
+      // console.log('CONNECT_ERROR');
       console.dir(err);
 
       if (!err?.message) {
         toast.warning('Something went wrong, please try again');
-        return;
-      }
-
-      if (enumValueIncludes(ExceptionMessageCode, err.message)) {
+      } else if (enumValueIncludes(ExceptionMessageCode, err.message)) {
         toast.warning(err.message); //TODO: appropriate messages
-        return;
+      } else {
+        toast.warning('Something went wrong, please try again');
       }
 
-      toast.warning('Something went wrong, please try again');
+      // console.log('retry');
+      // if (retryCount.current < 3) {
+      //   setTimeout(() => {
+      //     retryCount.current = retryCount.current + 1;
+
+      //     docEditSocket.io.engine.close();
+      //     // socket.io.engine.close();
+      //     docEditSocket.connect();
+
+      //     console.log(retryCount.current);
+      //   }, 2000);
+      // }
     });
     docEditSocket.on('connect_failed', (err: Error) => {
       console.log('='.repeat(20) + 'connect_failed');
@@ -153,6 +164,36 @@ export const DocumentEditor = (): JSX.Element => {
 
   return (
     <>
+      <>
+        <Button
+          onClick={() => {
+            docEditSocket.emit('test');
+          }}
+        >
+          test
+        </Button>
+        <Button
+          onClick={() => {
+            docEditSocket.disconnect();
+          }}
+        >
+          disconnect
+        </Button>
+        <Button
+          onClick={() => {
+            bus.emit('open:global-model', {
+              type: 'notification',
+              message: 'this is message',
+              title: 'this is ttitle',
+              onClose: () => {
+                console.log(123);
+              },
+            });
+          }}
+        >
+          test (open:global-model)
+        </Button>
+      </>
       <CodeMirror
         ref={editor}
         value={doc?.toString()}

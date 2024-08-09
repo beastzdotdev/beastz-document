@@ -1,3 +1,4 @@
+import { ClientApiError } from '@/lib/api/errors';
 import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
 import { ReactCodeMirrorProps } from '@uiw/react-codemirror';
 
@@ -36,3 +37,12 @@ export class SocketError extends Error {
 }
 
 export type GeneralEnumType<E> = Record<keyof E, number | string> & { [k: number]: string };
+
+export type HandleRefreshType = {
+  success: boolean;
+  message?: ExceptionMessageCode;
+};
+export type AxiosApiResponse<T> = {
+  data?: T;
+  error?: ClientApiError;
+};

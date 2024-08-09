@@ -1,6 +1,22 @@
 export const constants = {
+  path: {
+    backend: {
+      baseUrl: process.env.NEXT_PUBLIC_BACKEND_BASE_URL,
+    },
+
+    home: '/home',
+    oops: '/oops',
+  },
+
   externalLinks: {
-    beastzVault: 'https://vault.beastz.dev',
+    beastzVault: process.env.NEXT_PUBLIC_VAULT_URL,
+
+    get signIn() {
+      return `${this.beastzVault}/auth/sign-in`;
+    },
+    get authVerify() {
+      return `${this.beastzVault}/auth/verify`;
+    },
 
     get profileEdit() {
       return `${this.beastzVault}/profile`;

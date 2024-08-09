@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { CustomGlobalModal } from '@/components/ui/custom-global-modal';
 import { bus } from '@/lib/bus';
+import { GlobalModal } from '@/app/(auth)/_components/global-modal';
 
 export const SettingsModalProvider = ({ children }: ReactChildren): JSX.Element => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +30,7 @@ export const SettingsModalProvider = ({ children }: ReactChildren): JSX.Element 
           </div>
         </Card>
       </CustomGlobalModal>
+      <GlobalModal />
 
       {children}
     </>

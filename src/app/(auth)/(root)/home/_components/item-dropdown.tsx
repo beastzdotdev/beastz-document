@@ -1,4 +1,3 @@
-import { Item } from '@/app/(root)/home/_components/root';
 import { DeleteIcon, OpenNewTab, RenameIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
@@ -9,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Item } from '@/app/(auth)/(root)/home/_components/root';
 
 type Props = {
   item: Item;

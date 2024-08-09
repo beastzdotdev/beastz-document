@@ -7,14 +7,14 @@ import LogoSvg from '@/assets/document.svg';
 import { Icon } from '@iconify/react';
 import { constants } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
-import { DocumentMenubar } from '@/app/document/[documentId]/_components/document-menu-bar';
 import { Profile } from '@/components/app/profile';
 import { ExternalLink } from '@/components/app/external-link';
 import { ReactChildren } from '@/lib/types';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
-import { CollabButton } from '@/app/document/_components/collab-button';
-import { JoinedPeople } from '@/app/document/_components/joined-people';
-import { ConnectionIndicator } from '@/app/document/_components/connection-indicator';
+import { ConnectionIndicator } from '@/app/(auth)/document/_components/connection-indicator';
+import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
+import { CollabButton } from '@/app/(auth)/document/_components/collab-button';
+import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
 
 const CloudSavedTooltipContent = () => (
   <>

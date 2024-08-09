@@ -2,7 +2,6 @@
 
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
-import { docEditSocket } from '@/app/document/[documentId]/_components/socket';
 import { useCallback, useEffect, useState } from 'react';
 import { LoadingIcon } from '@/components/icons';
 import { bus } from '@/lib/bus';
@@ -11,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 
 const url = 'https://joincollab/join?toke=asdas121koks102120s1k10ks019291k109';
 
@@ -52,20 +52,6 @@ export const CollabButton = ({ people }: { people: { name: string }[] }) => {
 
   return (
     <>
-      <Button
-        onClick={() => {
-          docEditSocket.emit('test');
-        }}
-      >
-        test
-      </Button>
-      <Button
-        onClick={() => {
-          docEditSocket.disconnect();
-        }}
-      >
-        disconnect
-      </Button>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         {connected ? (
           <PopoverTrigger asChild>
