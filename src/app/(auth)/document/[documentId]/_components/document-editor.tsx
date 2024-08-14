@@ -1,35 +1,25 @@
 'use client';
 
 import * as themes from '@uiw/codemirror-themes-all';
+import { create } from 'zustand';
+import { toast } from 'sonner';
+import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
 
-import CodeMirror, {
-  Compartment,
-  EditorState,
-  EditorView,
-  Extension,
-  StateEffect,
-  Text,
-} from '@uiw/react-codemirror';
+import { bus } from '@/lib/bus';
+import { Button } from '@/components/ui/button';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { EditorTheme, SocketError } from '@/lib/types';
-import { docConfigBundle, wordHoverExtension } from '@/components/app/editor/extensions';
-import { copyToClipboard, enumValueIncludes, sleep } from '@/lib/utils';
-import { bus } from '@/lib/bus';
-import { toast } from 'sonner';
-import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
-import { Button } from '@/components/ui/button';
+import { EditorTheme } from '@/lib/types';
+import { docConfigBundle } from '@/components/app/editor/extensions';
+import { copyToClipboard } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
+import { useSocketStore } from '@/app/(auth)/document/state';
 import {
   getDocument,
   peerExtension,
   peerExtensionCompartment,
 } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
-import { useSocketStore } from '@/app/(auth)/document/state';
-import { create } from 'zustand';
-
-const myCompartment = new Compartment();
 
 export const tempText = Text.of([
   'Hello',
@@ -102,62 +92,27 @@ export const DocumentEditor = (): JSX.Element => {
     return;
   }, []);
 
-  // const removePeerExtension = useCallback(() => {
-  //   if (!editor.current?.view) {
-  //     return;
-  //   }
-
-  //   editor.current.view.dispatch({
-  //     effects: peerExtensionCompartment.reconfigure([]),
-  //   });
-
-  //   // docEditSocket.off('pullUpdateResponse');
-  //   // docEditSocket.off('pushUpdateResponse');
-  //   // docEditSocket.off('getDocumentResponse');
-  // }, []);
-
-  // const initExtension = useCallback(() => {
-  //   console.log('='.repeat(20));
-  //   console.log(editor.current?.view);
-  //   console.log(version);
-
-  //   if (!editor.current?.view || version === undefined) {
-  //     return;
-  //   }
-
-  //   editor.current.view.dispatch({
-  //     effects: peerExtensionCompartment.reconfigure(peerExtension(docEditSocket, version)),
-  //   });
-  // }, [version]);
-
   useEffect(() => {
     bus.on('editor:select-all', selectAll);
     bus.on('editor:copy', copySelected);
   }, [copySelected, selectAll]);
 
-  console.log('RERENDER WHOLE EDITOR');
+  // console.log('RERENDER WHOLE EDITOR');
 
   useEffect(
     () => {
-      // console.log('INITIAL LISTEN');
-
       docEditSocket.on('connect', async () => {
         if (!editor.current?.view) {
           return;
         }
 
-        // console.log('CONNECTED');
-
         useSocketStore.getState().setStatus('connected');
 
         // get latest doc version
         const { version, doc } = await getDocument(docEditSocket);
-
         docStore.setAll({ doc: doc.toString(), version });
 
         await new Promise(f => setTimeout(f, 1000));
-
-        console.log('activated');
 
         editor.current.view.dispatch({
           effects: peerExtensionCompartment.reconfigure(peerExtension(docEditSocket, version)),
@@ -169,9 +124,7 @@ export const DocumentEditor = (): JSX.Element => {
           return;
         }
 
-        // removePeerExtension();
         useSocketStore.getState().setStatus('disconnected');
-        // console.log('DISCONNECT');
       });
 
       // docEditSocket.on('connect_error', (err: SocketError) => {
