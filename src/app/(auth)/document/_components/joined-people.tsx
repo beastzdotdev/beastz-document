@@ -13,7 +13,7 @@ const randImg =
   'https://images.unsplash.com/photo-1541562232579-512a21360020?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
 export const JoinedPeople = ({ people }: { people: { name: string }[] }) => {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     // native listener in different file !
@@ -23,7 +23,7 @@ export const JoinedPeople = ({ people }: { people: { name: string }[] }) => {
     });
   }, []);
 
-  if (!show && !people.length) {
+  if (!show || !people.length) {
     return null;
   }
 
@@ -76,13 +76,26 @@ export const JoinedPeople = ({ people }: { people: { name: string }[] }) => {
               <TableRow className="rounded-xl border-none hover:bg-transparent" key={i}>
                 <TableCell className="font-medium">{e.name}</TableCell>
                 <TableCell className="flex justify-end">
-                  <Button className="h-6 flex items-center">
+                  <Button className="h-6 flex items-center" variant="destructive">
                     Kick
                     <Icon icon="mdi:ban" className="text-sm ml-1" />
                   </Button>
                 </TableCell>
               </TableRow>
             ))}
+
+            <TableRow className="rounded-xl border-none hover:bg-transparent pt-2">
+              {/* Needed here */}
+              <TableCell />
+
+              <TableCell className="flex justify-end">
+                <Button className="h-6 flex items-center" variant="destructive">
+                  Disconnect
+                  <Icon icon="fluent:plug-disconnected-48-regular" className="text-xl ml-1" />
+                  {/* <Icon icon="mdi:ban" className="text-sm ml-1" /> */}
+                </Button>
+              </TableCell>
+            </TableRow>
           </TableBody>
 
           {/*  */}

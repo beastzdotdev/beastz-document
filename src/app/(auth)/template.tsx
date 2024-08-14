@@ -1,17 +1,21 @@
 'use client';
 
-import { api } from '@/lib/api/api';
-import { secureHealthCheck } from '@/lib/api/definitions';
+import { useUserStore } from '@/app/(auth)/state';
+import { getCurrentUser } from '@/lib/api/definitions';
 import { ReactChildren } from '@/lib/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 
 export default function Template({ children }: ReactChildren): JSX.Element {
-  const [show, setShow] = useState(false);
+  const userStore = useUserStore();
 
   const shouldRenderPages = useCallback(async () => {
-    const { error } = await secureHealthCheck();
-    setShow(error ? false : true);
-  }, []);
+    const { data } = await getCurrentUser();
+
+    if (data) {
+      userStore.setUser(data);
+      return;
+    }
+  }, [userStore]);
 
   useEffect(
     () => {
@@ -21,7 +25,7 @@ export default function Template({ children }: ReactChildren): JSX.Element {
     []
   );
 
-  if (show) {
+  if (!!userStore.user) {
     return <>{children}</>;
   }
 

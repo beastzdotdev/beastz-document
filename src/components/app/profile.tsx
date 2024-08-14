@@ -13,14 +13,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useUserStore } from '@/app/(auth)/state';
+import { AvatarImage } from '@radix-ui/react-avatar';
 
 export const Profile = (): JSX.Element => {
+  const user = useUserStore(state => state.user);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="secondary" size="icon" className="rounded-full">
           <Avatar>
-            <AvatarFallback>Gio</AvatarFallback>
+            {!!user?.profileFullImagePath && (
+              <AvatarImage src={user?.profileFullImagePath} alt="beasts profile image" />
+            )}
+
+            <AvatarFallback>{user?.userName[0]}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

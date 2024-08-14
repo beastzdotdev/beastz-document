@@ -9,5 +9,9 @@ export const docEditSocket = io('ws://localhost:4000/doc-edit', {
   query: {
     platform: 'WEB',
   },
-  reconnectionAttempts: 3,
+  reconnectionAttempts: 15,
+  reconnection: true,
+  multiplex: true,
+
+  // reconnectionAttempts: 10,
 });

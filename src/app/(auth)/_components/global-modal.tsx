@@ -56,8 +56,6 @@ export const GlobalModal = (): JSX.Element => {
     }
   }, [globalModalState]);
 
-  console.log('rerended of global modal');
-
   return (
     <>
       <CustomGlobalModal

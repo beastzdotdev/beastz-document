@@ -15,6 +15,8 @@ import {
   Compartment,
   Extension,
 } from '@uiw/react-codemirror';
+import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
+import { useDocStore } from '@/app/(auth)/document/[documentId]/_components/document-editor';
 
 const pushUpdates = (
   socket: Socket,
@@ -29,29 +31,24 @@ const pushUpdates = (
   }));
 
   return new Promise(function (resolve) {
-    // socket.emit('pushUpdates', version, JSON.stringify(updates));
     socket.emit('pushUpdates', { version, updates });
-    // socket.emit('pushUpdates', { version, updates: JSON.stringify(updates) });
-
-    socket.once('pushUpdateResponse', function (status: boolean) {
-      resolve(status);
-    });
+    socket.once('pushUpdateResponse', (status: boolean) => resolve(status));
   });
 };
 
 const pullUpdates = async (socket: Socket, version: number): Promise<readonly Update[]> => {
   return new Promise(function (resolve) {
     socket.emit('pullUpdates', version);
+    socket.once('pullUpdateResponse', (updates: any) => resolve(updates));
+  }).then((updates: any) => {
+    console.log('='.repeat(20) + 'xxxxs');
+    console.log(updates);
 
-    socket.once('pullUpdateResponse', function (updates: any) {
-      resolve(JSON.parse(updates));
-    });
-  }).then((updates: any) =>
-    updates.map((u: any) => ({
+    return updates.map((u: any) => ({
       changes: ChangeSet.fromJSON(u.changes),
       clientID: u.clientID,
-    }))
-  );
+    }));
+  });
 };
 
 export const peerExtension = (socket: Socket, startVersion: number) => {
@@ -61,38 +58,69 @@ export const peerExtension = (socket: Socket, startVersion: number) => {
       private done = false;
 
       constructor(private view: EditorView) {
+        console.log('init peer ext');
+
         this.pull();
       }
 
       update(update: ViewUpdate) {
-        if (update.docChanged || update.transactions.length) this.push();
+        // console.log('='.repeat(20));
+        // console.log(update.transactions.length);
+
+        if (update.docChanged) {
+          console.log(update);
+          this.push();
+        }
+
+        // if (update.docChanged || update.transactions.length) console.log(update);
+        // if (update.docChanged || update.transactions.length) this.push();
       }
 
       async push() {
         const updates = sendableUpdates(this.view.state);
-        if (this.pushing || !updates.length) return;
+        console.log('='.repeat(20));
+        console.log(updates);
+
+        if (this.pushing || !updates.length) {
+          return;
+        }
+
+        // console.log('SENDABLE UPDATES');
+        // console.log('socket connected', docEditSocket.connected);
+        // console.log(updates);
+
         this.pushing = true;
         const version = getSyncedVersion(this.view.state);
-        const success = await pushUpdates(socket, version, updates);
+        // useDocStore.getState().setVersion(version);
+
+        await pushUpdates(socket, version, updates);
         this.pushing = false;
 
         // Regardless of whether the push failed or new updates came in
         // while it was running, try again if there's updates remaining
-        if (sendableUpdates(this.view.state).length) setTimeout(() => this.push(), 1000);
+        // if (sendableUpdates(this.view.state).length) setTimeout(() => this.push(), 1000);
       }
 
       async pull() {
         while (!this.done) {
-          console.log('This should happen only once' + Math.random());
+          console.log('executing pull');
 
           const version = getSyncedVersion(this.view.state);
+          // useDocStore.getState().setVersion(version);
+
           const updates = await pullUpdates(socket, version);
+
+          console.log('='.repeat(20));
+          console.log(version);
+          console.log(updates);
 
           this.view.dispatch(receiveUpdates(this.view.state, updates));
         }
       }
 
       destroy() {
+        console.log('destroy peer ext');
+
         this.done = true;
       }
     }

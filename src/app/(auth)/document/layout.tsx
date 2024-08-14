@@ -74,7 +74,7 @@ export default async function DocumentLayout({ children }: ReactChildren): Promi
             <Icon icon="icon-park-solid:comments" className="text-xl" />
           </Button>
           <JoinedPeople people={people} />
-          <CollabButton people={people} />
+          <CollabButton />
           <Profile />
         </div>
       </header>

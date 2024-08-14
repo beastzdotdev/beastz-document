@@ -1,29 +1,27 @@
 'use client';
 
+import { useSocketStore } from '@/app/(auth)/document/state';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
-import { bus } from '@/lib/bus';
-import { sleep } from '@/lib/utils';
 import { Icon } from '@iconify/react';
-import { useState, useEffect } from 'react';
 
 export const ConnectionIndicator = () => {
-  const [show, setShow] = useState(false);
+  const socketStatus = useSocketStore(state => state.status);
 
-  useEffect(() => {
-    // native listener in different file !
-    bus.on('socket:connected', async () => {
-      await sleep(1000);
-      setShow(true);
-    });
-  }, []);
-
-  if (!show) {
-    return null;
+  if (socketStatus === 'reconnecting') {
+    return (
+      <BasicTooltip content={<>Attempting reconnection</>}>
+        <Icon icon="fluent:plug-disconnected-48-regular" className="text-xl text-orange-400" />
+      </BasicTooltip>
+    );
   }
 
-  return (
-    <BasicTooltip content={<>Connection is successfull</>}>
-      <Icon icon="fluent:plug-disconnected-48-regular" className="text-xl text-green-400" />
-    </BasicTooltip>
-  );
+  if (socketStatus === 'connected') {
+    return (
+      <BasicTooltip content={<>Connection is successfull</>}>
+        <Icon icon="fluent:plug-disconnected-48-regular" className="text-xl text-green-400" />
+      </BasicTooltip>
+    );
+  }
+
+  return null;
 };

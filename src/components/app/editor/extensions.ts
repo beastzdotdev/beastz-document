@@ -44,6 +44,19 @@ const myCompletions = async (context: CompletionContext): Promise<CompletionResu
           });
         },
       },
+      {
+        label: '``` ```',
+        type: `variable`,
+        apply: (view, _completion, from, to) => {
+          const text = '```\n\n```';
+          const cursorPosition = text.length / 2;
+
+          view.dispatch({
+            ...insertCompletionText(view.state, text, from, to),
+            selection: { anchor: from + cursorPosition },
+          });
+        },
+      },
       { label: `bold`, type: `variable`, apply: '***' }, //
       { label: `@`, type: `variable`, displayLabel: 'Table', apply: 'Table example @' }, //
       { label: `@`, type: `variable`, displayLabel: 'H1', apply: 'H! example @' }, //
