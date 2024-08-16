@@ -9,7 +9,7 @@ export const constants = {
   },
 
   externalLinks: {
-    beastzVault: process.env.NEXT_PUBLIC_VAULT_URL,
+    beastzVault: process.env.NEXT_PUBLIC_VAULT_URL!,
 
     get signIn() {
       return `${this.beastzVault}/auth/sign-in`;

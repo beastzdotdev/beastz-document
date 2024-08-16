@@ -1,12 +1,5 @@
 import { Socket } from 'socket.io-client';
 import {
-  Update,
-  receiveUpdates,
-  sendableUpdates,
-  collab,
-  getSyncedVersion,
-} from '@codemirror/collab';
-import {
   ChangeSet,
   EditorView,
   ViewPlugin,
@@ -15,93 +8,61 @@ import {
   Compartment,
 } from '@uiw/react-codemirror';
 
-const pushUpdates = (
-  socket: Socket,
-  version: number,
-  fullUpdates: readonly Update[]
-): Promise<boolean> => {
-  // Strip off transaction data
-  const updates = fullUpdates.map(u => ({
-    clientID: u.clientID,
-    changes: u.changes.toJSON(),
-    effects: u.effects,
-  }));
-
-  return new Promise(function (resolve) {
-    socket.emit('pushUpdates', { version, updates });
-    socket.once('pushUpdateResponse', (status: boolean) => resolve(status));
-  });
+const PeerPluginSocketNames = {
+  PushDoc: 'push_doc',
+  PullDoc: 'pull_doc',
+  FetchDoc: 'fetch_doc',
 };
 
-const pullUpdates = async (socket: Socket, version: number): Promise<readonly Update[]> => {
-  return new Promise(function (resolve) {
-    socket.emit('pullUpdates', version);
-    socket.once('pullUpdateResponse', (updates: any) => resolve(updates));
-  }).then((updates: any) => {
-    return updates.map((u: any) => ({
-      changes: ChangeSet.fromJSON(u.changes),
-      clientID: u.clientID,
-    }));
-  });
-};
-
-export const peerExtension = (socket: Socket, startVersion: number) => {
-  const plugin = ViewPlugin.fromClass(
+export const PeerPlugin = (userId: number, socket: Socket) => {
+  return ViewPlugin.fromClass(
     class {
-      private pushing = false;
-      private done = false;
-
       constructor(private view: EditorView) {
-        this.pull();
+        socket.on(PeerPluginSocketNames.PullDoc, (data: unknown) => {
+          this.view.dispatch({
+            scrollIntoView: false,
+            changes: ChangeSet.fromJSON(data),
+          });
+        });
       }
 
       update(update: ViewUpdate) {
-        if (update.docChanged) {
-          this.push();
+        // docChanged for only user input (this also detect selections, effect, etc)
+        // selectionSet is checked for only pushing my own updates and not set by pull
+        if (update.docChanged && update.selectionSet) {
+          this.push(update);
         }
       }
 
-      async push() {
-        const updates = sendableUpdates(this.view.state);
-
-        if (this.pushing || !updates.length) {
+      async push(update: ViewUpdate) {
+        if (!update.changes.length) {
           return;
         }
 
-        this.pushing = true;
-        const version = getSyncedVersion(this.view.state);
-        await pushUpdates(socket, version, updates);
-        this.pushing = false;
+        const data = {
+          changes: update.changes.toJSON(),
+          userId,
+        };
 
-        // Regardless of whether the push failed or new updates came in
-        // while it was running, try again if there's updates remaining
-        if (sendableUpdates(this.view.state).length) setTimeout(() => this.push(), 1000);
-      }
-
-      async pull() {
-        while (!this.done) {
-          const version = getSyncedVersion(this.view.state);
-          const updates = await pullUpdates(socket, version);
-
-          this.view.dispatch(receiveUpdates(this.view.state, updates));
-        }
+        socket.emit(PeerPluginSocketNames.PushDoc, data);
       }
 
       destroy() {
-        this.done = true;
+        // remove socket listeners for document edit
+        for (const socketEvent of Object.values(PeerPluginSocketNames)) {
+          socket.off(socketEvent);
+        }
       }
     }
   );
-
-  return [collab({ startVersion }), plugin];
 };
 
 export const peerExtensionCompartment = new Compartment();
 
-export const getDocument = (socket: Socket): Promise<{ version: number; doc: Text }> =>
-  new Promise(resolve => {
-    socket.emit('getDocument');
-    socket.once('getDocumentResponse', (version: number, doc: string) =>
-      resolve({ version, doc: Text.of(doc.split('\n')) })
+export const getDocument = (socket: Socket): Promise<Text> => {
+  return new Promise(resolve => {
+    socket.emit(PeerPluginSocketNames.FetchDoc, null, (e: string) =>
+      resolve(Text.of(e.split('\n')))
     );
   });
+};

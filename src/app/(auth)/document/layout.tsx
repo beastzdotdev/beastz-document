@@ -9,19 +9,13 @@ import { constants } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Profile } from '@/components/app/profile';
 import { ExternalLink } from '@/components/app/external-link';
-import { ReactChildren } from '@/lib/types';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
 import { ConnectionIndicator } from '@/app/(auth)/document/_components/connection-indicator';
 import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
 import { CollabButton } from '@/app/(auth)/document/_components/collab-button';
 import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
-
-const CloudSavedTooltipContent = () => (
-  <>
-    All changes are saved in{' '}
-    <ExternalLink href={constants.externalLinks.beastzVault}>Vault</ExternalLink>
-  </>
-);
+import { ReactChildren } from '@/lib/types';
+import { LayoutTitle } from '@/app/(auth)/document/_components/layout-title';
 
 export default async function DocumentLayout({ children }: ReactChildren): Promise<JSX.Element> {
   const people: { name: string }[] = [
@@ -42,7 +36,7 @@ export default async function DocumentLayout({ children }: ReactChildren): Promi
           <div className="flex flex-col pl-2">
             <div className="pl-2 flex items-center gap-3">
               <p className="text-lg font-normal text-nowrap tracking-tight">
-                Sandbox Ultimate Edition
+                <LayoutTitle />
               </p>
 
               <BasicTooltip content="Move this file inside vault">
@@ -52,7 +46,14 @@ export default async function DocumentLayout({ children }: ReactChildren): Promi
                 />
               </BasicTooltip>
 
-              <BasicTooltip content={<CloudSavedTooltipContent />}>
+              <BasicTooltip
+                content={
+                  <>
+                    All changes are saved in{' '}
+                    <ExternalLink href={constants.externalLinks.beastzVault}>Vault</ExternalLink>
+                  </>
+                }
+              >
                 <Icon
                   icon="dashicons:cloud-saved"
                   className="text-xl active:text-lg transition-all"

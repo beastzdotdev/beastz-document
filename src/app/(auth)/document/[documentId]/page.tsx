@@ -7,7 +7,7 @@ export async function generateMetadata(
   props: DocumentByIdPageParams,
   _parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const title = props.searchParams[constants.general.queryTitleForDocument] ?? '';
+  const title = props.searchParams?.[constants.general.queryTitleForDocument] ?? '';
   const headerTitle = title ? `${title} - Beast Doc` : 'Beast Doc';
 
   return {

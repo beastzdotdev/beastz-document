@@ -1,3 +1,4 @@
+```tsx
 'use client';
 
 import * as themes from '@uiw/codemirror-themes-all';
@@ -10,17 +11,16 @@ import { Button } from '@/components/ui/button';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { EditorTheme, SocketError } from '@/lib/types';
+import { EditorTheme } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
 import { copyToClipboard } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 import { useSocketStore } from '@/app/(auth)/document/state';
 import {
-  PeerPlugin,
   getDocument,
+  peerExtension,
   peerExtensionCompartment,
 } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
-import { useUserStore } from '@/app/(auth)/state';
 
 export const tempText = Text.of([
   'Hello',
@@ -30,22 +30,30 @@ export const tempText = Text.of([
 ]).toString();
 
 type SocktState = {
-  doc: Text | undefined;
-  setDoc: (value: Text) => void;
+  doc: string | undefined;
+  version: number | undefined;
+  setDoc: (value: string) => void;
+  setVersion: (value: number) => void;
+  setAll: (value: { doc: string; version: number }) => void;
 };
 
 export const useDocStore = create<SocktState>((set, get) => ({
   doc: undefined,
-  setDoc: (value: Text) => set({ doc: value }),
+  version: undefined,
+  setDoc: (value: string) => set({ doc: value }),
+  setVersion: (value: number) => set({ version: value }),
+  setAll: (value: { doc: string; version: number }) => set({ ...value }),
 }));
 
 export const DocumentEditor = (): JSX.Element => {
   const socketStore = useSocketStore();
   const docStore = useDocStore();
-  const userStore = useUserStore();
 
-  const editor = useRef<{ view: EditorView }>(null);
   const [theme, _setTheme] = useState<EditorTheme>('dark');
+  const editor = useRef<{ view: EditorView }>(null);
+
+  // const [version, setVersion] = useState<number>();
+  // const [doc, setDoc] = useState<Text>();
 
   const extensions: Extension[] = useMemo(
     () =>
@@ -90,6 +98,8 @@ export const DocumentEditor = (): JSX.Element => {
     bus.on('editor:copy', copySelected);
   }, [copySelected, selectAll]);
 
+  // console.log('RERENDER WHOLE EDITOR');
+
   useEffect(
     () => {
       docEditSocket.on('connect', async () => {
@@ -100,13 +110,13 @@ export const DocumentEditor = (): JSX.Element => {
         useSocketStore.getState().setStatus('connected');
 
         // get latest doc version
-        const doc = await getDocument(docEditSocket);
-        docStore.setDoc(doc);
+        const { version, doc } = await getDocument(docEditSocket);
+        docStore.setAll({ doc: doc.toString(), version });
 
-        const userId = userStore.getUser().id;
+        await new Promise(f => setTimeout(f, 1000));
 
-        editor?.current?.view.dispatch({
-          effects: peerExtensionCompartment.reconfigure(PeerPlugin(userId, docEditSocket)),
+        editor.current.view.dispatch({
+          effects: peerExtensionCompartment.reconfigure(peerExtension(docEditSocket, version)),
         });
       });
 
@@ -118,37 +128,28 @@ export const DocumentEditor = (): JSX.Element => {
         useSocketStore.getState().setStatus('disconnected');
       });
 
-      docEditSocket.on('connect_error', (err: SocketError) => {
-        console.log('='.repeat(20));
-        console.log(err);
-        // if (!err?.message) {
-        //   toast.warning('Something went wrong, please try again');
-        // } else if (enumValueIncludes(ExceptionMessageCode, err.message)) {
-        //   toast.warning(err.message); //TODO: appropriate messages
-        // } else {
-        //   toast.warning('Something went wrong, please try again');
-        // }
+      // docEditSocket.on('connect_error', (err: SocketError) => {
+      //   if (!err?.message) {
+      //     toast.warning('Something went wrong, please try again');
+      //   } else if (enumValueIncludes(ExceptionMessageCode, err.message)) {
+      //     toast.warning(err.message); //TODO: appropriate messages
+      //   } else {
+      //     toast.warning('Something went wrong, please try again');
+      //   }
 
-        // bus.emit('socket:disconnected');
-      });
+      //   bus.emit('socket:disconnected');
+      // });
 
       // docEditSocket.on('connect_failed', () => {
       //   toast.warning('Something went wrong, please try again');
       //   bus.emit('socket:disconnected');
       // });
 
-      docEditSocket.io.on('error', () => {
-        console.log('='.repeat(20) + 1);
-      });
-      docEditSocket.on('error', err => {
-        console.log('='.repeat(20) + 2);
-        console.log(err);
-      });
-
       docEditSocket.io.on('reconnect', attempt => {
-        // editor?.current?.view.dispatch({
-        //   effects: peerExtensionCompartment.reconfigure([]),
-        // });
+        editor?.current?.view.dispatch({
+          effects: peerExtensionCompartment.reconfigure([]),
+        });
+
         // console.log('RECONNECTED');
       });
       docEditSocket.io.on('reconnect_attempt', reconnectNumber => {
@@ -203,9 +204,9 @@ export const DocumentEditor = (): JSX.Element => {
     <>
       <>
         <p>sock status: {socketStore.status}</p>
-        {/* <p>version: {docStore.version}</p> */}
+        <p>version: {docStore.version}</p>
         <p>doc: {docStore.doc}</p>
-        {/* <Button
+        <Button
           onClick={() => {
             if (!editor.current?.view) {
               return;
@@ -215,7 +216,7 @@ export const DocumentEditor = (): JSX.Element => {
           }}
         >
           log exts
-        </Button> */}
+        </Button>
         <Button onClick={() => docEditSocket.emit('test')}>test</Button>
         <Button onClick={() => docEditSocket.disconnect()}>disconnect</Button>
         <Button onClick={() => docEditSocket.io.engine.close()}>low-level diconnect</Button>
@@ -237,7 +238,7 @@ export const DocumentEditor = (): JSX.Element => {
 
       <CodeMirror
         ref={editor}
-        value={docStore.doc?.toString()}
+        value={docStore.doc}
         width="1050px"
         className="w-fit mx-auto h-full cm-custom"
         autoFocus
@@ -250,3 +251,4 @@ export const DocumentEditor = (): JSX.Element => {
     </>
   );
 };
+```

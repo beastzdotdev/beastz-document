@@ -46,3 +46,23 @@ export const cleanURL = (
 
   return url;
 };
+
+export const formatDate = (date: Date): string => {
+  const now = new Date();
+  const isToday = now.toDateString() === date.toDateString();
+
+  const options: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+  const time = date.toLocaleTimeString([], options);
+
+  if (isToday) {
+    return `Opened ${time}`;
+  } else {
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    };
+    const formattedDate = date.toLocaleDateString('en-US', dateOptions);
+    return `Opened ${formattedDate}`;
+  }
+};

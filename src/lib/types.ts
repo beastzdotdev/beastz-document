@@ -2,10 +2,11 @@ import { ClientApiError } from '@/lib/api/errors';
 import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
 import { ReactCodeMirrorProps } from '@uiw/react-codemirror';
 
+export type ViewType = 'list' | 'grid';
 export type EditorTheme = ReactCodeMirrorProps['theme'];
 export type PageProps<T> = {
   params: T;
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
 export type ReactChildren = Readonly<{ children: React.ReactNode }>;
