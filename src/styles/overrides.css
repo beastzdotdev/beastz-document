@@ -30,6 +30,25 @@
   align-items: center;
 }
 
+.ͼ1 .cm-tooltip.cm-tooltip-autocomplete {
+  border-bottom-color: rgb(69, 69, 69);
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-left-color: rgb(69, 69, 69);
+  border-left-style: solid;
+  border-left-width: 1px;
+  border-right-color: rgb(69, 69, 69);
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-top-color: rgb(69, 69, 69);
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border-top-style: solid;
+  border-top-width: 1px;
+}
+
 .ͼ1 .cm-tooltip.cm-tooltip-autocomplete > ul {
   max-width: 500px;
   min-width: 360px;

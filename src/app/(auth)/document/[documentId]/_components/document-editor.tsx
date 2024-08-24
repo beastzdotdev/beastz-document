@@ -22,7 +22,7 @@ import {
 } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
 import { useUserStore } from '@/app/(auth)/state';
 
-export const tempText = Text.of([
+const tempText = Text.of([
   'Hello',
   'World',
   'Hello'.repeat(10),
@@ -39,13 +39,26 @@ export const useDocStore = create<SocktState>((set, get) => ({
   setDoc: (value: Text) => set({ doc: value }),
 }));
 
+/**
+ * @important
+ * ! state given from useRef is only initial state
+ * ! if you want to access state current from codemirror 6 then access it view editor.view.state
+ */
 export const DocumentEditor = (): JSX.Element => {
   const socketStore = useSocketStore();
   const docStore = useDocStore();
   const userStore = useUserStore();
 
-  const editor = useRef<{ view: EditorView }>(null);
+  const editorRef = useRef<{ view: EditorView }>(null);
   const [theme, _setTheme] = useState<EditorTheme>('dark');
+
+  const view = useCallback(() => {
+    if (!editorRef.current) {
+      throw new Error('Editor not found');
+    }
+
+    return editorRef.current.view;
+  }, []);
 
   const extensions: Extension[] = useMemo(
     () =>
@@ -61,29 +74,28 @@ export const DocumentEditor = (): JSX.Element => {
   );
 
   const selectAll = useCallback(() => {
-    editor.current?.view.dispatch({
-      selection: { anchor: 0, head: tempText.length },
+    view().dispatch({
+      selection: { anchor: 0, head: view().state.doc.toString().length },
     });
-  }, []);
+
+    // focus after selecting all from menubar
+    view().focus();
+  }, [view]);
 
   const copySelected = useCallback(() => {
-    if (!editor.current) {
-      return;
-    }
-
-    const selection = editor.current.view.state.selection.main;
+    const selection = view().state.selection.main;
 
     if (!selection || selection.empty) {
       toast.warning('Nothing was selected');
       return;
     }
 
-    const text = editor.current.view.state.sliceDoc(selection.from, selection.to);
+    const text = view().state.sliceDoc(selection.from, selection.to);
     copyToClipboard(text);
 
     toast.success('Copied to clipboard');
     return;
-  }, []);
+  }, [view]);
 
   useEffect(() => {
     bus.on('editor:select-all', selectAll);
@@ -93,10 +105,6 @@ export const DocumentEditor = (): JSX.Element => {
   useEffect(
     () => {
       docEditSocket.on('connect', async () => {
-        if (!editor.current?.view) {
-          return;
-        }
-
         useSocketStore.getState().setStatus('connected');
 
         // get latest doc version
@@ -105,16 +113,12 @@ export const DocumentEditor = (): JSX.Element => {
 
         const userId = userStore.getUser().id;
 
-        editor?.current?.view.dispatch({
+        view().dispatch({
           effects: peerExtensionCompartment.reconfigure(PeerPlugin(userId, docEditSocket)),
         });
       });
 
       docEditSocket.on('disconnect', async () => {
-        if (!editor.current?.view) {
-          return;
-        }
-
         useSocketStore.getState().setStatus('disconnected');
       });
 
@@ -216,7 +220,21 @@ export const DocumentEditor = (): JSX.Element => {
         >
           log exts
         </Button> */}
-        <Button onClick={() => docEditSocket.emit('test')}>test</Button>
+        <Button
+          onClick={() => {
+            // insert new text at the end of line
+            view().dispatch({
+              changes: {
+                from: view().state.doc.toString().length,
+                insert: tempText,
+              },
+            });
+          }}
+        >
+          instert big text
+        </Button>
+        <Button onClick={() => selectAll()}>test</Button>
+        {/* <Button onClick={() => docEditSocket.emit('test')}>test</Button> */}
         <Button onClick={() => docEditSocket.disconnect()}>disconnect</Button>
         <Button onClick={() => docEditSocket.io.engine.close()}>low-level diconnect</Button>
         <Button
@@ -236,7 +254,7 @@ export const DocumentEditor = (): JSX.Element => {
       </>
 
       <CodeMirror
-        ref={editor}
+        ref={editorRef}
         value={docStore.doc?.toString()}
         width="1050px"
         className="w-fit mx-auto h-full cm-custom"
