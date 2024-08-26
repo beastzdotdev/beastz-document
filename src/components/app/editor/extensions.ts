@@ -208,7 +208,7 @@ const getAllTheme = () => {
 };
 const getAllExtension = () => {
   return [
-    wordHoverExtension,
+    // wordHoverExtension,
     highestPredesenceKeymapExtensions,
 
     EditorView.lineWrapping,

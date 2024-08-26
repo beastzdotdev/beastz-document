@@ -34,3 +34,17 @@ export class FileStructure {
   absRelativePath: string | null = null;
   children: FileStructure[] | null;
 }
+
+export class FileStructurePublicShare {
+  id: number;
+  userId: number;
+  fileStructureId: number;
+  uniqueHash: string;
+  isDownloadable: boolean;
+  isPasswordProtected: boolean;
+  isDisabled: boolean;
+  expiresAt: Date | null;
+  password: string | null;
+  createdAt: Date;
+  joinLink: string;
+}

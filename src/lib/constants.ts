@@ -1,7 +1,7 @@
 export const constants = {
   path: {
     backend: {
-      baseUrl: process.env.NEXT_PUBLIC_BACKEND_BASE_URL,
+      baseUrl: process.env.NEXT_PUBLIC_BACKEND_BASE_URL as string,
     },
 
     home: '/home',

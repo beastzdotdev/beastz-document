@@ -2,6 +2,10 @@ import z from 'zod';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { GeneralEnumType } from '@/lib/types';
+import { FileStructure } from '@/lib/api/type';
+import { FileMimeType } from '@/lib/enums/file-mimte-type.enum';
+import { constants } from '@/lib/constants';
+import { UrlObject } from 'url';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -65,4 +69,14 @@ export const formatDate = (date: Date): string => {
     const formattedDate = date.toLocaleDateString('en-US', dateOptions);
     return `Opened ${formattedDate}`;
   }
+};
+
+export const getRedirectUrl = (item: FileStructure): UrlObject => {
+  const ext = item.mimeType === FileMimeType.TEXT_PLAIN ? '.txt' : '.md';
+
+  const queryParams = new URLSearchParams({
+    [constants.general.queryTitleForDocument]: item.title + ext,
+  });
+
+  return `/document/${item.id}?${queryParams.toString()}` as unknown as UrlObject;
 };

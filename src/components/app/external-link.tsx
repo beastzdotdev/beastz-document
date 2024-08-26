@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { UrlObject } from 'url';
 
 type Props = ReactPropsWithChildren<{
-  href: string;
+  href: string | UrlObject;
   className?: string;
   noUnderline?: boolean;
 }>;

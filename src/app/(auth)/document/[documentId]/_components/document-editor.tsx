@@ -1,13 +1,14 @@
 'use client';
 
 import * as themes from '@uiw/codemirror-themes-all';
+import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
 import { create } from 'zustand';
 import { toast } from 'sonner';
-import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
+import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { bus } from '@/lib/bus';
 import { Button } from '@/components/ui/button';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EditorTheme, SocketError } from '@/lib/types';
@@ -15,12 +16,14 @@ import { docConfigBundle } from '@/components/app/editor/extensions';
 import { copyToClipboard } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 import { useSocketStore } from '@/app/(auth)/document/state';
+import { useUserStore } from '@/app/(auth)/state';
+import { getFileStructureById, getText } from '@/lib/api/definitions';
 import {
   PeerPlugin,
   getDocument,
   peerExtensionCompartment,
 } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
-import { useUserStore } from '@/app/(auth)/state';
+import { useCollabButtonStore } from '@/app/(auth)/document/_components/collab-button.state';
 
 const tempText = Text.of([
   'Hello',
@@ -31,12 +34,18 @@ const tempText = Text.of([
 
 type SocktState = {
   doc: Text | undefined;
+  readonly: boolean;
   setDoc: (value: Text) => void;
+  setReadonly: (value: boolean) => void;
+  setAll: (params: { value: Text; readonly: boolean }) => void;
 };
 
 export const useDocStore = create<SocktState>((set, get) => ({
   doc: undefined,
+  readonly: true,
   setDoc: (value: Text) => set({ doc: value }),
+  setReadonly: (value: boolean) => set({ readonly: value }),
+  setAll: ({ value, readonly }) => set({ doc: value, readonly }),
 }));
 
 /**
@@ -48,6 +57,7 @@ export const DocumentEditor = (): JSX.Element => {
   const socketStore = useSocketStore();
   const docStore = useDocStore();
   const userStore = useUserStore();
+  const params = useParams<{ documentId: string }>();
 
   const editorRef = useRef<{ view: EditorView }>(null);
   const [theme, _setTheme] = useState<EditorTheme>('dark');
@@ -102,8 +112,57 @@ export const DocumentEditor = (): JSX.Element => {
     bus.on('editor:copy', copySelected);
   }, [copySelected, selectAll]);
 
+  const setText = useCallback(async () => {
+    const documentId = parseInt(params.documentId);
+
+    if (typeof documentId !== 'number') {
+      toast.error('Sorry, something went wrong');
+      return;
+    }
+
+    const { data, error } = await getFileStructureById(documentId);
+
+    if (error || !data || !data.absRelativePath) {
+      toast.error('Sorry, something went wrong');
+      return;
+    }
+
+    const { data: text, error: textError } = await getText(data.absRelativePath);
+
+    if (textError || !text) {
+      toast.error('Sorry, something went wrong');
+      return;
+    }
+
+    docStore.setAll({
+      value: Text.of([text]),
+      readonly: false,
+    });
+  }, [docStore, params.documentId]);
+
   useEffect(
     () => {
+      setText();
+
+      //TODO: also all connected users must not be authenticated user
+      //! connect socket here !!!
+
+      // const onClick = useCallback(async () => {
+      //   if (docEditSocket.connected) {
+      //     return;
+      //   }
+
+      //   setLoading(true);
+
+      //   const { error } = await secureHealthCheck();
+      //   if (error) {
+      //     return;
+      //   }
+
+      //   // health check before connecting to socket
+      //   docEditSocket.connect();
+      // }, []);
+
       docEditSocket.on('connect', async () => {
         useSocketStore.getState().setStatus('connected');
 
@@ -203,23 +262,13 @@ export const DocumentEditor = (): JSX.Element => {
     []
   );
 
+  const x = useCollabButtonStore();
+
   return (
     <>
       <>
+        <p>readonly: {!!docStore.readonly ? 'yes' : 'no'}</p>
         <p>sock status: {socketStore.status}</p>
-        {/* <p>version: {docStore.version}</p> */}
-        <p>doc: {docStore.doc}</p>
-        {/* <Button
-          onClick={() => {
-            if (!editor.current?.view) {
-              return;
-            }
-
-            console.log(peerExtensionCompartment.get(editor.current.view.state));
-          }}
-        >
-          log exts
-        </Button> */}
         <Button
           onClick={() => {
             // insert new text at the end of line
@@ -260,8 +309,14 @@ export const DocumentEditor = (): JSX.Element => {
         className="w-fit mx-auto h-full cm-custom"
         autoFocus
         spellCheck
-        readOnly={socketStore.status === 'reconnecting'}
-        basicSetup={{ ...docConfigBundle.basicSetupOption, lineNumbers: false }}
+        editable={!docStore.readonly}
+        readOnly={docStore.readonly}
+        basicSetup={{
+          ...docConfigBundle.basicSetupOption,
+          lineNumbers: false,
+          highlightActiveLine: !docStore.readonly,
+          highlightActiveLineGutter: !docStore.readonly,
+        }}
         extensions={extensions}
         theme={activeTheme}
       />
