@@ -282,8 +282,8 @@ export const DocumentEditor = (): JSX.Element => {
         >
           instert big text
         </Button>
-        <Button onClick={() => selectAll()}>test</Button>
-        {/* <Button onClick={() => docEditSocket.emit('test')}>test</Button> */}
+        <Button onClick={() => selectAll()}>select all</Button>
+        <Button onClick={() => docEditSocket.emit('test')}>test</Button>
         <Button onClick={() => docEditSocket.disconnect()}>disconnect</Button>
         <Button onClick={() => docEditSocket.io.engine.close()}>low-level diconnect</Button>
         <Button

@@ -133,6 +133,8 @@ export const CollabButton = () => {
                       <Input
                         className="flex-1 cursor-default"
                         value={collabButtonStore.data.joinLink}
+                        tabIndex={-1}
+                        autoFocus={false}
                         readOnly
                       />
                       <Button
