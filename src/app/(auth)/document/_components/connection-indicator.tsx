@@ -1,6 +1,6 @@
 'use client';
 
-import { useSocketStore } from '@/app/(auth)/document/state';
+import { useSocketStore } from '@/app/(auth)/document/[documentId]/state';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
 import { Icon } from '@iconify/react';
 

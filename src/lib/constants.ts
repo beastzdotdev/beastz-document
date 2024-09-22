@@ -5,7 +5,7 @@ export const constants = {
     },
 
     home: '/home',
-    oops: '/oops',
+    oops: '/404',
   },
 
   externalLinks: {

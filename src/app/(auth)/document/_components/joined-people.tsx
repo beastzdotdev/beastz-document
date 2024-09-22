@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { useSocketStore } from '@/app/(auth)/document/state';
+import { useSocketStore } from '@/app/(auth)/document/[documentId]/state';
 
 const randImg =
   'https://images.unsplash.com/photo-1541562232579-512a21360020?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';

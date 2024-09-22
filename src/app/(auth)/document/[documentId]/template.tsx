@@ -1,7 +1,9 @@
-'use server';
+/* eslint-disable react-hooks/exhaustive-deps */
+'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
 import LogoSvg from '@/assets/document.svg';
 
 import { Icon } from '@iconify/react';
@@ -12,18 +14,71 @@ import { ExternalLink } from '@/components/app/external-link';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
 import { ConnectionIndicator } from '@/app/(auth)/document/_components/connection-indicator';
 import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
-import { CollabButton } from '@/app/(auth)/document/_components/collab-button';
 import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
 import { ReactChildren } from '@/lib/types';
 import { LayoutTitle } from '@/app/(auth)/document/_components/layout-title';
+import { useDocumentShareStore, useDocumentStore } from '@/app/(auth)/document/[documentId]/state';
+import { useEffect, useState } from 'react';
+import { cleanURL } from '@/lib/utils';
+import {
+  getFileStructureById,
+  getFileStructurePublicShare,
+  getFileStructurePublicShareEnabled,
+} from '@/lib/api/definitions';
 
-export default async function DocumentLayout({ children }: ReactChildren): Promise<JSX.Element> {
-  const people: { name: string }[] = [
-    // /
-    { name: 'John' },
-    { name: 'Jane' },
-    { name: 'Jack' },
-  ];
+export default function DocumentTemplate({ children }: ReactChildren): JSX.Element {
+  const router = useRouter();
+  const params = useParams<{ documentId: string }>();
+  const documentStore = useDocumentStore();
+  const documentShareStore = useDocumentShareStore();
+
+  const [renderEditor, setRenderEditor] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const documentId = parseInt(params.documentId);
+
+      if (typeof documentId !== 'number') {
+        router.push(cleanURL(constants.path.oops, { message: 'Invalid url' }).toString());
+        return;
+      }
+
+      const [
+        { data: docShareEnabled, error: docShareEnabledError },
+        { data: fsData, error: fsError },
+      ] = await Promise.all([
+        getFileStructurePublicShareEnabled(documentId),
+        getFileStructureById(documentId),
+      ]);
+
+      const isShareEnabledProblem = docShareEnabledError || docShareEnabled === undefined;
+      const fsProblem = fsError || fsData === undefined;
+
+      if (isShareEnabledProblem || fsProblem) {
+        return router.push(
+          cleanURL(constants.path.oops, { message: 'Document not found' }).toString(),
+        );
+      }
+
+      documentShareStore.setAll({ isEnabled: docShareEnabled });
+
+      if (docShareEnabled) {
+        const { data, error } = await getFileStructurePublicShare(documentId);
+
+        if (error || !data) {
+          return router.push(
+            cleanURL(constants.path.oops, { message: 'Something went wrong' }).toString(),
+          );
+        }
+
+        documentShareStore.setAll({ data });
+      }
+
+      documentStore.setDocument(fsData);
+
+      setRenderEditor(true);
+    })();
+  }, []);
 
   return (
     <div className="flex min-h-screen w-full flex-col h-full">
@@ -74,13 +129,25 @@ export default async function DocumentLayout({ children }: ReactChildren): Promi
           <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="icon-park-solid:comments" className="text-xl" />
           </Button>
-          <JoinedPeople people={people} />
-          <CollabButton />
+          <JoinedPeople people={[{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }]} />
+          {/* Disabled for now */}
+          {/* <CollabButton /> */}
           <Profile />
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto h-full bg-muted/40">{children}</main>
+      <main className="flex-1 overflow-y-auto h-full bg-muted/40">
+        {renderEditor ? children : <Loading />}
+      </main>
     </div>
   );
 }
+
+const Loading = () => {
+  return (
+    <>
+      {/* //TODO: can add loading here */}
+      <h1 className="text-center mt-5">Loading ....</h1>
+    </>
+  );
+};

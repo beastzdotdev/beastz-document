@@ -11,15 +11,15 @@ import { cn, copyToClipboard } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useCollabButtonStore } from '@/app/(auth)/document/_components/collab-button.state';
 import {
   createFileStructurePublicShare,
   getFileStructurePublicShare,
   updateFileStructurePublicShare,
 } from '@/lib/api/definitions';
+import { useDocumentShareStore } from '@/app/(auth)/document/[documentId]/state';
 
 export const CollabButton = () => {
-  const collabButtonStore = useCollabButtonStore();
+  const documentShareStore = useDocumentShareStore();
   const params = useParams<{ documentId: string }>();
   const [isCopied, setIsCopied] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -32,25 +32,25 @@ export const CollabButton = () => {
       return;
     }
 
-    collabButtonStore.setIsLoading(true);
+    documentShareStore.setIsLoading(true);
 
     // this is for toggling state if exists share data already
-    if (collabButtonStore.data) {
-      const isDisabled = !collabButtonStore.data.isDisabled;
+    if (documentShareStore.data) {
+      const isDisabled = !documentShareStore.data.isDisabled;
 
-      const { data, error } = await updateFileStructurePublicShare(collabButtonStore.data.id, {
+      const { data, error } = await updateFileStructurePublicShare(documentShareStore.data.id, {
         isDisabled,
       });
 
       if (error || !data) {
-        collabButtonStore.setAll({
+        documentShareStore.setAll({
           isLoading: false,
         });
 
         return;
       }
 
-      collabButtonStore.setAll({
+      documentShareStore.setAll({
         isLoading: false,
         data,
       });
@@ -61,10 +61,10 @@ export const CollabButton = () => {
     const { data, error } = await createFileStructurePublicShare(documentId);
 
     if (error || !data) {
-      return collabButtonStore.setAll({ isLoading: false });
+      return documentShareStore.setAll({ isLoading: false });
     }
 
-    return collabButtonStore.setAll({ isLoading: false, data });
+    return documentShareStore.setAll({ isLoading: false, data });
   };
 
   const getFileStructurePublicShareInit = useCallback(async () => {
@@ -76,23 +76,23 @@ export const CollabButton = () => {
     }
 
     // to avoid unnecessary click from modal
-    collabButtonStore.setModalDisabled(true);
+    documentShareStore.setModalDisabled(true);
 
     const { data, error } = await getFileStructurePublicShare(documentId);
 
     if (error || !data) {
-      return collabButtonStore.setAll({ isModalDisabled: false, data: null });
+      return documentShareStore.setAll({ isModalDisabled: false, data: null });
     }
 
-    return collabButtonStore.setAll({ isModalDisabled: false, data });
-  }, [collabButtonStore, params.documentId]);
+    return documentShareStore.setAll({ isModalDisabled: false, data });
+  }, [documentShareStore, params.documentId]);
 
   useEffect(
     () => {
       getFileStructurePublicShareInit();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [],
   );
 
   const onCopy = useCallback(async (value: string) => {
@@ -116,7 +116,7 @@ export const CollabButton = () => {
           className="p-1.5 min-w-96 mr-16 mt-2"
           onCloseAutoFocus={() => setIsCopied(false)}
         >
-          <div className={cn({ 'pointer-events-none': collabButtonStore.isModalDisabled })}>
+          <div className={cn({ 'pointer-events-none': documentShareStore.isModalDisabled })}>
             <Alert className="border-none">
               <Icon icon="mdi:invite" className="text-xl !top-3" />
               <AlertTitle className="flex">
@@ -124,7 +124,7 @@ export const CollabButton = () => {
               </AlertTitle>
 
               <AlertDescription className="text-muted-foreground">
-                {collabButtonStore.data && !collabButtonStore.data.isDisabled ? (
+                {documentShareStore.data && !documentShareStore.data.isDisabled ? (
                   <>
                     <div>
                       Do not share this link with anyone you do not want to collaborate with !
@@ -132,13 +132,13 @@ export const CollabButton = () => {
                     <div className="flex w-full items-center space-x-2 mt-3">
                       <Input
                         className="flex-1 cursor-default"
-                        value={collabButtonStore.data.joinLink}
+                        value={documentShareStore.data.joinLink}
                         tabIndex={-1}
                         autoFocus={false}
                         readOnly
                       />
                       <Button
-                        onClick={() => onCopy(collabButtonStore?.data?.joinLink ?? '')}
+                        onClick={() => onCopy(documentShareStore?.data?.joinLink ?? '')}
                         className="w-16"
                         variant="outline"
                       >
@@ -151,7 +151,7 @@ export const CollabButton = () => {
                 )}
 
                 <div className="flex justify-end mt-4">
-                  {collabButtonStore.data && !collabButtonStore.data.isDisabled ? (
+                  {documentShareStore.data && !documentShareStore.data.isDisabled ? (
                     <>
                       <Button disabled variant="outline">
                         Regen (soon)
@@ -159,9 +159,9 @@ export const CollabButton = () => {
                     </>
                   ) : null}
 
-                  <Button disabled={collabButtonStore.isLoading} onClick={enableSharingDocument}>
-                    {collabButtonStore.isLoading ? <LoadingIcon className="mr-2" /> : null}
-                    {collabButtonStore.data && !collabButtonStore.data.isDisabled
+                  <Button disabled={documentShareStore.isLoading} onClick={enableSharingDocument}>
+                    {documentShareStore.isLoading ? <LoadingIcon className="mr-2" /> : null}
+                    {documentShareStore.data && !documentShareStore.data.isDisabled
                       ? 'Disable'
                       : 'Enable'}
                   </Button>

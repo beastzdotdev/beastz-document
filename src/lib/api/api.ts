@@ -23,18 +23,25 @@ api.interceptors.response.use(r => r, handleAxiosResponseError);
 let refreshingFunc: Promise<HandleRefreshType> | undefined;
 
 const redirectToAuthSignin = () => {
-  const url = new URL(constants.externalLinks.signIn);
-  url.searchParams.set('redirect', cleanURL(constants.path.home).toString());
-  window.location.assign(url.toString());
+  const externalUrl = new URL(constants.externalLinks.signIn);
+  const inlineHomeUrl = cleanURL(constants.path.home).toString();
+
+  externalUrl.searchParams.set('redirect', inlineHomeUrl);
+
+  window.location.assign(externalUrl.toString());
 };
 
-const redirectToOops = (text?: string) => {
-  const seconParams = text ? { text } : undefined;
-  // window.location.assign(cleanURL(constants.path.oops, seconParams).toString());
+const redirectToOops = (message?: string) => {
+  const seconParams = message ? { message } : undefined;
+  const inlineOopsUrl = cleanURL(constants.path.oops, seconParams).toString();
+
+  window.location.assign(inlineOopsUrl);
 };
 
 const redirectToVerify = () => {
-  window.location.assign(constants.externalLinks.authVerify);
+  const externalUrl = constants.externalLinks.authVerify;
+
+  window.location.assign(externalUrl);
 };
 
 const alertAndRedirect = (message: string, type: 'oops' | 'sign-in' | 'verify') => {

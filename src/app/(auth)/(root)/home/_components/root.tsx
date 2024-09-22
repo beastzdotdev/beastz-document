@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
 import { useCallback, useEffect, useState } from 'react';
 import { constants } from '@/lib/constants';
-import { useDocumentStore } from '@/app/(auth)/(root)/home/state';
+import { useDocumentsStore } from '@/app/(auth)/(root)/home/state';
 import { getFileStructures } from '@/lib/api/definitions';
 import { ListViewItem } from '@/app/(auth)/(root)/home/_components/list-view-item';
 import { GridViewItem } from '@/app/(auth)/(root)/home/_components/grid-view-item';
 import { ViewType } from '@/lib/types';
 
 export const DashboardRoot = (): JSX.Element => {
-  const documentStore = useDocumentStore();
+  const documentStore = useDocumentsStore();
   const [view, setView] = useState<ViewType | null>(null);
 
   const toggleView = useCallback(() => {
@@ -40,7 +40,7 @@ export const DashboardRoot = (): JSX.Element => {
       // fill local storage before render
       // default will be grid !
       const item = localStorage.getItem(
-        constants.general.localStorageViewTypeKey
+        constants.general.localStorageViewTypeKey,
       ) as ViewType | null;
 
       if (!item) {
@@ -52,7 +52,7 @@ export const DashboardRoot = (): JSX.Element => {
       setInitialDocuments();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [],
   );
 
   return (

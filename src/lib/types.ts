@@ -47,3 +47,6 @@ export type AxiosApiResponse<T> = {
   data?: T;
   error?: ClientApiError;
 };
+
+
+export type SocketStatus = 'connected' | 'disconnected' | 'reconnecting';

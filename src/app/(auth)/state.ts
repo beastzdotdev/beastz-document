@@ -3,13 +3,13 @@
 import { UserResponseDto } from '@/lib/api/type';
 import { create } from 'zustand';
 
-type SocktState = {
+type UserState = {
   user: UserResponseDto | null;
   setUser: (user: UserResponseDto) => void;
   getUser: () => UserResponseDto;
 };
 
-export const useUserStore = create<SocktState>((set, get) => ({
+export const useUserStore = create<UserState>((set, get) => ({
   user: null,
   setUser: (user: UserResponseDto) => set({ user }),
   getUser: () => {

@@ -86,6 +86,17 @@ export const createFileStructurePublicShare = async (
   }
 };
 
+export const getFileStructurePublicShareEnabled = async (
+  fsId: number,
+): Promise<AxiosApiResponse<boolean>> => {
+  try {
+    const result: AxiosResponse<boolean> = await api.get(`/file-structure-public-share/is-enabled/${fsId}`);
+    return { data: result.data };
+  } catch (e: unknown) {
+    return { error: e as ClientApiError };
+  }
+};
+
 export const getFileStructurePublicShare = async (
   fileStructureId: number,
 ): Promise<AxiosApiResponse<FileStructurePublicShare>> => {

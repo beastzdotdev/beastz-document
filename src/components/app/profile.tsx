@@ -23,7 +23,7 @@ export const Profile = (): JSX.Element => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="secondary" size="icon" className="rounded-full">
-          <Avatar>
+          <Avatar className="border border-slate-700">
             {!!user?.profileFullImagePath && (
               <AvatarImage src={user?.profileFullImagePath} alt="beasts profile image" />
             )}
