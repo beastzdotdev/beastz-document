@@ -214,7 +214,7 @@ const getAllExtension = () => {
     EditorView.lineWrapping,
 
     //! this is needed for extension toggle to work, see in toggle-extensions folder
-    autoCompleteCompartment.of(autoCompleteExtension),
+    // autoCompleteCompartment.of(autoCompleteExtension),
   ];
 };
 
