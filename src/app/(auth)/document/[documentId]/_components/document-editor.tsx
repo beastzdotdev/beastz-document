@@ -140,30 +140,30 @@ export const DocumentEditor = (): JSX.Element => {
         docStore.setReadonly(false);
       })();
 
+      docEditSocket.on(constants.socket.events.PullDocFull, async () => {
+        console.log('calling');
+        console.log(parseInt(params.documentId));
+        const { data, error } = await getDocumentText(parseInt(params.documentId));
+
+        console.log('='.repeat(20));
+        console.log({ data, error });
+
+        if (error || data === undefined) {
+          toast.error('Sorry, could not load document');
+          return;
+        }
+
+        const userId = userStore.getUser().id;
+
+        view().dispatch({
+          effects: peerExtensionCompartment.reconfigure(PeerPlugin(userId, docEditSocket)),
+        });
+
+        docStore.setDoc(Text.of([data]));
+      });
       // docEditSocket.on('admin_test', payload => {
       //   console.log('='.repeat(20) + '[ADMIN]');
       //   console.log(payload);
-      // });
-      // docEditSocket.on('fetch_doc', async () => {
-      //   console.log('calling');
-      //   console.log(parseInt(params.documentId));
-      //   const { data, error } = await getDocumentText(parseInt(params.documentId));
-
-      //   console.log('='.repeat(20));
-      //   console.log({ data, error });
-
-      //   if (error || data === undefined) {
-      //     toast.error('Sorry, could not load document');
-      //     return;
-      //   }
-
-      //   const userId = userStore.getUser().id;
-
-      //   view().dispatch({
-      //     effects: peerExtensionCompartment.reconfigure(PeerPlugin(userId, docEditSocket)),
-      //   });
-
-      //   docStore.setDoc(Text.of([data]));
       // });
       // docEditSocket.on('connect', async () => {
       //   console.log('CONNECTEd');

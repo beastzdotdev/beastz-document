@@ -126,9 +126,9 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
           <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="ion:apps" className="text-xl" />
           </Button>
-          <Button size="icon" variant="ghost" className="focus-visible:ring-0">
+          {/* <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="icon-park-solid:comments" className="text-xl" />
-          </Button>
+          </Button> */}
           <JoinedPeople people={[{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }]} />
           {/* Disabled for now */}
           {/* <CollabButton /> */}

@@ -46,4 +46,12 @@ export const constants = {
     localStorageViewTypeKey: 'default_items_view',
     queryTitleForDocument: 'title',
   },
+
+  socket: {
+    events: {
+      PushDoc: 'push_doc',
+      PullDoc: 'pull_doc',
+      PullDocFull: 'pull_doc_full',
+    }
+  }
 };

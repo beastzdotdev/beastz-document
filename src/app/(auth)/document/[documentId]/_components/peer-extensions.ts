@@ -1,24 +1,20 @@
 import { Socket } from 'socket.io-client';
-import { ChangeSet, EditorView, ViewPlugin, ViewUpdate, Text, Compartment } from '@uiw/react-codemirror';
+import { constants } from '@/lib/constants';
+import { ChangeSet, EditorView, ViewPlugin, ViewUpdate, Compartment } from '@uiw/react-codemirror';
 
-const PeerPluginSocketNames = {
-  PushDoc: 'push_doc',
-  PullDoc: 'pull_doc',
-  PullDocFull: 'pull_doc_full',
-};
 
 export const PeerPlugin = (userId: number, socket: Socket) => {
   return ViewPlugin.fromClass(
     class {
       constructor(private view: EditorView) {
-        socket.on(PeerPluginSocketNames.PullDoc, (data: unknown) => {
+        socket.on(constants.socket.events.PullDoc, (data: unknown) => {
           this.view.dispatch({
             scrollIntoView: false,
             changes: ChangeSet.fromJSON(data),
           });
         });
 
-        socket.on(PeerPluginSocketNames.PullDocFull, (data: unknown) => {
+        socket.on(constants.socket.events.PullDocFull, (data: unknown) => {
           console.log(data);
 
           // this.view.dispatch({
@@ -46,14 +42,18 @@ export const PeerPlugin = (userId: number, socket: Socket) => {
           userId,
         };
 
-        socket.emit(PeerPluginSocketNames.PushDoc, data);
+        socket.emit(constants.socket.events.PushDoc, data);
       }
 
       destroy() {
         // remove socket listeners for document edit
-        for (const socketEvent of Object.values(PeerPluginSocketNames)) {
+        [
+          constants.socket.events.PullDoc,
+          constants.socket.events.PullDocFull,
+          constants.socket.events.PushDoc,
+        ].forEach((socketEvent) => {
           socket.off(socketEvent);
-        }
+        })
       }
     },
   );
