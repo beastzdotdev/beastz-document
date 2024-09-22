@@ -5,6 +5,11 @@
 @import './overrides.css';
 @import './theme.css';
 
+html,
+body {
+  background-color: black;
+}
+
 @layer base {
   * {
     @apply border-border;

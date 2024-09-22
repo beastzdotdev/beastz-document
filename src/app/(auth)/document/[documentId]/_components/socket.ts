@@ -15,10 +15,12 @@ export const docEditSocket = io('ws://localhost:4000/document', {
       throw new Error('Something went wrong');
     }
 
+    // cb({  });
     cb({ filesStructureId });
   },
 
-  reconnectionAttempts: 15,
+  reconnectionAttempts: 3,
+  // reconnectionAttempts: 15,
   reconnection: true,
   multiplex: true,
 });

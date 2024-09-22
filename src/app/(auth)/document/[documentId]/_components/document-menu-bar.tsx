@@ -58,11 +58,8 @@ export const DocumentMenubar = (): JSX.Element => {
           <MenubarSeparator />
           <MenubarItem>
             <Icon icon="charm:share" className="text-lg mr-1.5" />
+            {/* bust emit and just toggle collab button only visually */}
             Share
-          </MenubarItem>
-          <MenubarItem>
-            <Icon icon="mdi:file-move-outline" className="text-xl mr-1.5" />
-            Move
           </MenubarItem>
           <MenubarSeparator />
           <MenubarSub>
@@ -74,7 +71,7 @@ export const DocumentMenubar = (): JSX.Element => {
               <MenubarItem>Plain Text (.txt)</MenubarItem>
               <MenubarItem>Plain Markdown (.md)</MenubarItem>
               <MenubarItem>PDF (.pdf)</MenubarItem>
-              <MenubarItem>Microsoft Word (.docx)</MenubarItem>
+              {/* <MenubarItem>Microsoft Word (.docx)</MenubarItem> */}
               <MenubarItem>Web (.html)</MenubarItem>
               <MenubarItem>Zip</MenubarItem>
             </MenubarSubContent>
@@ -138,13 +135,15 @@ export const DocumentMenubar = (): JSX.Element => {
           <MenubarSeparator />
 
           <MenubarItem>
+            {/* bus emit on doc editor and toggle key commmand cmd+f or something diff in windows */}
             <Icon icon="material-symbols:find-replace-rounded" className="text-xl mr-1.5" />
             Find And Replace <MenubarShortcut>⌘F</MenubarShortcut>
           </MenubarItem>
         </MenubarContent>
       </MenubarMenu>
 
-      <MenubarMenu>
+      {/* Later */}
+      {/* <MenubarMenu>
         <MenubarTrigger className="font-medium px-2 cursor-pointer hover:bg-accent">
           View
         </MenubarTrigger>
@@ -162,7 +161,7 @@ export const DocumentMenubar = (): JSX.Element => {
             Toggle Fullscreen
           </MenubarItem>
         </MenubarContent>
-      </MenubarMenu>
+      </MenubarMenu> */}
 
       <MenubarMenu>
         <MenubarTrigger className="font-medium px-2 cursor-pointer hover:bg-accent">
@@ -174,9 +173,9 @@ export const DocumentMenubar = (): JSX.Element => {
             <Icon icon="fluent:text-word-count-24-filled" className="text-xl mr-1.5" />
             Word Cound <MenubarShortcut>⇧⌘C</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>
+          <MenubarItem disabled>
             <Icon icon="grommet-icons:user-settings" className="text-xl mr-1.5" />
-            Settings
+            Settings (Soon)
           </MenubarItem>
         </MenubarContent>
       </MenubarMenu>

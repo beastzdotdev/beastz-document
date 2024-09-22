@@ -111,7 +111,7 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
               >
                 <Icon
                   icon="dashicons:cloud-saved"
-                  className="text-xl active:text-lg transition-all"
+                  className="text-xl transition-all cursor-default"
                 />
               </BasicTooltip>
 

@@ -11,9 +11,9 @@ import { bus } from '@/lib/bus';
 import { Button } from '@/components/ui/button';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { EditorTheme } from '@/lib/types';
+import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { cleanURL, copyToClipboard } from '@/lib/utils';
+import { cleanURL, copyToClipboard, enumValueIncludes } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 import {
   useDocumentShareStore,
@@ -31,6 +31,7 @@ import {
   peerExtensionCompartment,
 } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
 import { constants } from '@/lib/constants';
+import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
 
 type SocktState = {
   doc: Text | undefined;
@@ -57,7 +58,6 @@ export const DocumentEditor = (): JSX.Element => {
   const router = useRouter();
   const socketStore = useSocketStore();
   const docStore = useDocStore();
-  const userStore = useUserStore();
   const documentStore = useDocumentStore();
   const documentShareStore = useDocumentShareStore();
   const params = useParams<{ documentId: string }>();
@@ -140,84 +140,86 @@ export const DocumentEditor = (): JSX.Element => {
         docStore.setReadonly(false);
       })();
 
-      docEditSocket.on(constants.socket.events.PullDocFull, async () => {
-        console.log('calling');
-        console.log(parseInt(params.documentId));
-        const { data, error } = await getDocumentText(parseInt(params.documentId));
-
-        console.log('='.repeat(20));
-        console.log({ data, error });
-
-        if (error || data === undefined) {
-          toast.error('Sorry, could not load document');
-          return;
-        }
-
-        const userId = userStore.getUser().id;
-
-        view().dispatch({
-          effects: peerExtensionCompartment.reconfigure(PeerPlugin(userId, docEditSocket)),
-        });
-
-        docStore.setDoc(Text.of([data]));
+      docEditSocket.on('connect', async () => {
+        console.log('CONNECTEd');
+        useSocketStore.getState().setStatus('connected');
       });
-      // docEditSocket.on('admin_test', payload => {
-      //   console.log('='.repeat(20) + '[ADMIN]');
-      //   console.log(payload);
-      // });
-      // docEditSocket.on('connect', async () => {
-      //   console.log('CONNECTEd');
-      //   useSocketStore.getState().setStatus('connected');
-      // });
-      // docEditSocket.on('disconnect', async x => {
-      //   useSocketStore.getState().setStatus('disconnected');
-      // });
 
-      // // docEditSocket.on('connect_error', (err: SocketError) => {
-      // //   if (!err?.message) {
-      // //     toast.warning('Something went wrong, please try again');
-      // //   } else if (enumValueIncludes(ExceptionMessageCode, err.message)) {
-      // //     toast.warning(err.message); //TODO: appropriate messages
-      // //   } else {
-      // //     toast.warning('Something went wrong, please try again');
-      // //   }
-      // //   bus.emit('socket:disconnected');
-      // // });
-      // // docEditSocket.on('connect_failed', () => {
-      // //   toast.warning('Something went wrong, please try again');
-      // //   bus.emit('socket:disconnected');
-      // // });
+      docEditSocket.on('disconnect', () => {
+        console.log('CONNECTEd');
+        useSocketStore.getState().setStatus('disconnected');
+      });
+
+      docEditSocket.on('error', (err: SocketError) => {
+        console.log('Socket error', err);
+      });
+
+      docEditSocket.io.on('reconnect_attempt', reconnectNumber => {
+        console.log('RECONNECT_ATTEMPT', reconnectNumber);
+        useSocketStore.getState().setStatus('reconnecting');
+      });
+
+      docEditSocket.io.on('reconnect_failed', () => {
+        toast.warning('Sorry reconnection failed, click connection indicator to try reconnecting', {
+          duration: 10000,
+        });
+        useSocketStore.getState().setStatus('disconnected');
+      });
+
+      // User defined events
+      // docEditSocket.on(constants.socket.events.PullDocFull, async () => {
+      //   console.log('calling');
+      //   console.log(parseInt(params.documentId));
+      //   const { data, error } = await getDocumentText(parseInt(params.documentId));
+
+      //   console.log('='.repeat(20));
+      //   console.log({ data, error });
+
+      //   if (error || data === undefined) {
+      //     toast.error('Sorry, could not load document');
+      //     return;
+      //   }
+
+      //   docStore.setDoc(Text.of([data]));
+
+      //   // const userId = userStore.getUser().id;
+
+      //   ////TODO I think this should be in other place
+      //   // view().dispatch({
+      //   //   effects: peerExtensionCompartment.reconfigure(PeerPlugin(userId, docEditSocket)),
+      //   // });
+      // });
 
       // docEditSocket.io.on('reconnect', attempt => {
-      //   console.log('RECONNECTED');
+      //   console.log('RECONNECTED', attempt);
 
       //   // editor?.current?.view.dispatch({
       //   //   effects: peerExtensionCompartment.reconfigure([]),
       //   // });
       // });
-      // docEditSocket.io.on('reconnect_attempt', reconnectNumber => {
-      //   useSocketStore.getState().setStatus('reconnecting');
-
-      //   // console.log('RECONNECT_ATTEMPT', reconnectNumber);
-      //   // removePeerExtension();
+      // docEditSocket.on('admin_test', payload => {
+      //   console.log('='.repeat(20) + '[ADMIN]');
+      //   console.log(payload);
       // });
 
-      // return () => {
-      //   docEditSocket.io.off('reconnect');
-      //   docEditSocket.io.off('reconnect_attempt');
+      return () => {
+        docEditSocket.off('connect');
+        docEditSocket.off('disconnect');
+        docEditSocket.off('error');
 
-      //   docEditSocket.off('connect');
-      //   docEditSocket.off('disconnect');
+        docEditSocket.io.off('reconnect_attempt');
+        docEditSocket.io.off('reconnect_failed');
 
-      //   docEditSocket.off('fetch_doc');
-      //   docEditSocket.off('admin_test');
-      //   // docEditSocket.off('connect_error');
-      //   // docEditSocket.off('connect_failed');
+        docEditSocket.off(constants.socket.events.PullDocFull);
 
-      //   // docEditSocket.off('pullUpdateResponse');
-      //   // docEditSocket.off('pushUpdateResponse');
-      //   // docEditSocket.off('getDocumentResponse');
-      // };
+        // docEditSocket.off('admin_test');
+        // docEditSocket.off('connect_error');
+        // docEditSocket.off('connect_failed');
+
+        // docEditSocket.off('pullUpdateResponse');
+        // docEditSocket.off('pushUpdateResponse');
+        // docEditSocket.off('getDocumentResponse');
+      };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],

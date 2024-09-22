@@ -49,7 +49,6 @@ export const PeerPlugin = (userId: number, socket: Socket) => {
         // remove socket listeners for document edit
         [
           constants.socket.events.PullDoc,
-          constants.socket.events.PullDocFull,
           constants.socket.events.PushDoc,
         ].forEach((socketEvent) => {
           socket.off(socketEvent);
