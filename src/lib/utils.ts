@@ -5,7 +5,6 @@ import { GeneralEnumType } from '@/lib/types';
 import { FileStructure } from '@/lib/api/type';
 import { FileMimeType } from '@/lib/enums/file-mimte-type.enum';
 import { constants } from '@/lib/constants';
-import { UrlObject } from 'url';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -35,7 +34,7 @@ export function enumValueIncludes<E extends GeneralEnumType<E>>(someEnum: E, val
 
 export const cleanURL = (
   pathName: string,
-  params?: Record<string, string | number | boolean>
+  params?: Record<string, string | number | boolean>,
 ): URL => {
   const url = new URL(window.location.href);
   url.pathname = pathName;
@@ -71,12 +70,12 @@ export const formatDate = (date: Date): string => {
   }
 };
 
-export const getRedirectUrl = (item: FileStructure): UrlObject => {
+export const getDocumentRedirectUrl = (item: FileStructure): string => {
   const ext = item.mimeType === FileMimeType.TEXT_PLAIN ? '.txt' : '.md';
 
   const queryParams = new URLSearchParams({
     [constants.general.queryTitleForDocument]: item.title + ext,
   });
 
-  return `/document/${item.id}?${queryParams.toString()}` as unknown as UrlObject;
+  return `/document/${item.id}?${queryParams.toString()}`;
 };

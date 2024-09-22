@@ -9,7 +9,8 @@
     "dev:server": "nodemon ./socket.js",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "ts:watch": "tsc --noEmit --incremental --watch"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.17.0",

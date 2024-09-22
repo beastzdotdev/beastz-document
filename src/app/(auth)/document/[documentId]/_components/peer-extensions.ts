@@ -1,17 +1,10 @@
 import { Socket } from 'socket.io-client';
-import {
-  ChangeSet,
-  EditorView,
-  ViewPlugin,
-  ViewUpdate,
-  Text,
-  Compartment,
-} from '@uiw/react-codemirror';
+import { ChangeSet, EditorView, ViewPlugin, ViewUpdate, Text, Compartment } from '@uiw/react-codemirror';
 
 const PeerPluginSocketNames = {
   PushDoc: 'push_doc',
   PullDoc: 'pull_doc',
-  FetchDoc: 'fetch_doc',
+  PullDocFull: 'pull_doc_full',
 };
 
 export const PeerPlugin = (userId: number, socket: Socket) => {
@@ -23,6 +16,15 @@ export const PeerPlugin = (userId: number, socket: Socket) => {
             scrollIntoView: false,
             changes: ChangeSet.fromJSON(data),
           });
+        });
+
+        socket.on(PeerPluginSocketNames.PullDocFull, (data: unknown) => {
+          console.log(data);
+
+          // this.view.dispatch({
+          //   scrollIntoView: false,
+          //   changes: ChangeSet.fromJSON(data),
+          // });
         });
       }
 
@@ -53,16 +55,8 @@ export const PeerPlugin = (userId: number, socket: Socket) => {
           socket.off(socketEvent);
         }
       }
-    }
+    },
   );
 };
 
 export const peerExtensionCompartment = new Compartment();
-
-export const getDocument = (socket: Socket): Promise<Text> => {
-  return new Promise(resolve => {
-    socket.emit(PeerPluginSocketNames.FetchDoc, null, (e: string) =>
-      resolve(Text.of(e.split('\n')))
-    );
-  });
-};

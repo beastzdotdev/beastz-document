@@ -30,7 +30,7 @@ const redirectToAuthSignin = () => {
 
 const redirectToOops = (text?: string) => {
   const seconParams = text ? { text } : undefined;
-  window.location.assign(cleanURL(constants.path.oops, seconParams).toString());
+  // window.location.assign(cleanURL(constants.path.oops, seconParams).toString());
 };
 
 const redirectToVerify = () => {
@@ -66,7 +66,7 @@ async function handleAxiosResponseError(error: unknown) {
   const generalClientError = new ClientApiError(
     HttpStatusCode.InternalServerError,
     ExceptionMessageCode.CLIENT_OR_INTERNAL_ERROR,
-    error
+    error,
   );
 
   try {
@@ -85,11 +85,7 @@ async function handleAxiosResponseError(error: unknown) {
         redirectToOops();
 
         return Promise.reject(
-          new ClientApiError(
-            HttpStatusCode.InternalServerError,
-            ExceptionMessageCode.CLIENT_OR_INTERNAL_ERROR,
-            error
-          )
+          new ClientApiError(HttpStatusCode.InternalServerError, ExceptionMessageCode.CLIENT_OR_INTERNAL_ERROR, error),
         );
       }
 
@@ -98,11 +94,7 @@ async function handleAxiosResponseError(error: unknown) {
           exceptionBody.data.message === ExceptionMessageCode.ACCESS_EXPIRED_TOKEN &&
           exceptionBody.data.statusCode === HttpStatusCode.Unauthorized;
 
-        const clientAPiError = new ClientApiError(
-          exceptionBody.data.statusCode,
-          exceptionBody.data.message,
-          error
-        );
+        const clientAPiError = new ClientApiError(exceptionBody.data.statusCode, exceptionBody.data.message, error);
 
         if (needsRefresh) {
           // const data = await handleRefresh();

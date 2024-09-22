@@ -4,7 +4,7 @@ import * as themes from '@uiw/codemirror-themes-all';
 import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
 import { create } from 'zustand';
 import { toast } from 'sonner';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { bus } from '@/lib/bus';
@@ -17,13 +17,17 @@ import { copyToClipboard } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 import { useSocketStore } from '@/app/(auth)/document/state';
 import { useUserStore } from '@/app/(auth)/state';
-import { getFileStructureById, getText } from '@/lib/api/definitions';
+import {
+  getDocumentText,
+  getFileStructureById,
+  getFileStructurePublicShare,
+  getText,
+} from '@/lib/api/definitions';
+import { useCollabButtonStore } from '@/app/(auth)/document/_components/collab-button.state';
 import {
   PeerPlugin,
-  getDocument,
   peerExtensionCompartment,
 } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
-import { useCollabButtonStore } from '@/app/(auth)/document/_components/collab-button.state';
 
 const tempText = Text.of([
   'Hello',
@@ -54,6 +58,7 @@ export const useDocStore = create<SocktState>((set, get) => ({
  * ! if you want to access state current from codemirror 6 then access it view editor.view.state
  */
 export const DocumentEditor = (): JSX.Element => {
+  const router = useRouter();
   const socketStore = useSocketStore();
   const docStore = useDocStore();
   const userStore = useUserStore();
@@ -75,12 +80,12 @@ export const DocumentEditor = (): JSX.Element => {
       docConfigBundle
         .getAllExtension()
         .concat(markdown({ codeLanguages: languages }), peerExtensionCompartment.of([])),
-    []
+    [],
   );
 
   const activeTheme = useMemo(
     () => (themes[theme as keyof typeof themes] || theme) as EditorTheme,
-    [theme]
+    [theme],
   );
 
   const selectAll = useCallback(() => {
@@ -123,125 +128,123 @@ export const DocumentEditor = (): JSX.Element => {
     const { data, error } = await getFileStructureById(documentId);
 
     if (error || !data || !data.absRelativePath) {
-      toast.error('Sorry, something went wrong');
+      router.push('/404?message=Document not found' as any);
       return;
     }
 
     const { data: text, error: textError } = await getText(data.absRelativePath);
 
-    if (textError || !text) {
+    if (textError || typeof text !== 'string') {
       toast.error('Sorry, something went wrong');
       return;
     }
 
-    docStore.setAll({
-      value: Text.of([text]),
-      readonly: false,
-    });
-  }, [docStore, params.documentId]);
+    docStore.setDoc(Text.of([text]));
+  }, [docStore, params.documentId, router]);
+
+  const isShareEnabled = useCallback(async () => {
+    const documentId = parseInt(params.documentId);
+
+    if (typeof documentId !== 'number') {
+      toast.error('Sorry, something went wrong');
+      return;
+    }
+
+    const { data } = await getFileStructurePublicShare(documentId);
+
+    return !!(data && !data.isDisabled);
+  }, [params.documentId]);
+
+  const init = useCallback(async () => {
+    // first connect socket always
+    // connection is always necessary for locks and everything
+    docEditSocket.connect();
+
+    const isFsShareEnabled = await isShareEnabled();
+
+    if (!isFsShareEnabled) {
+      await setText();
+    }
+
+    docStore.setReadonly(false);
+  }, [docStore, isShareEnabled, setText]);
 
   useEffect(
     () => {
-      setText();
+      // !!! Important
+      //TODO there is some system change create plan
+      //TODO for example users connected on frontend must be enabled after for example isShared is true in zustand
+      //TODO loading document also must be rechecked because here it is fetched from get go not checked is sharing is enabled or not
+      //TODO    and error appears because of that
 
-      //TODO: also all connected users must not be authenticated user
-      //! connect socket here !!!
+      //TODO but connection indicator must be global on socket
+      init();
 
-      // const onClick = useCallback(async () => {
-      //   if (docEditSocket.connected) {
-      //     return;
-      //   }
+      docEditSocket.on('admin_test', payload => {
+        console.log('='.repeat(20) + '[ADMIN]');
+        console.log(payload);
+      });
 
-      //   setLoading(true);
+      docEditSocket.on('fetch_doc', async () => {
+        console.log('='.repeat(20));
+        console.log(parseInt(params.documentId));
 
-      //   const { error } = await secureHealthCheck();
-      //   if (error) {
-      //     return;
-      //   }
+        const { data, error } = await getDocumentText(parseInt(params.documentId));
 
-      //   // health check before connecting to socket
-      //   docEditSocket.connect();
-      // }, []);
+        console.log('='.repeat(20));
+        console.log({ data, error });
 
-      docEditSocket.on('connect', async () => {
-        useSocketStore.getState().setStatus('connected');
-
-        // get latest doc version
-        const doc = await getDocument(docEditSocket);
-        docStore.setDoc(doc);
+        if (error || data === undefined) {
+          toast.error('Sorry, could not load document');
+          return;
+        }
 
         const userId = userStore.getUser().id;
 
         view().dispatch({
           effects: peerExtensionCompartment.reconfigure(PeerPlugin(userId, docEditSocket)),
         });
+
+        docStore.setDoc(Text.of([data]));
       });
 
-      docEditSocket.on('disconnect', async () => {
+      docEditSocket.on('connect', async () => {
+        console.log('CONNECTEd');
+        useSocketStore.getState().setStatus('connected');
+      });
+
+      docEditSocket.on('disconnect', async x => {
         useSocketStore.getState().setStatus('disconnected');
       });
 
-      docEditSocket.on('connect_error', (err: SocketError) => {
-        console.log('='.repeat(20));
-        console.log(err);
-        // if (!err?.message) {
-        //   toast.warning('Something went wrong, please try again');
-        // } else if (enumValueIncludes(ExceptionMessageCode, err.message)) {
-        //   toast.warning(err.message); //TODO: appropriate messages
-        // } else {
-        //   toast.warning('Something went wrong, please try again');
-        // }
-
-        // bus.emit('socket:disconnected');
-      });
-
+      // docEditSocket.on('connect_error', (err: SocketError) => {
+      //   if (!err?.message) {
+      //     toast.warning('Something went wrong, please try again');
+      //   } else if (enumValueIncludes(ExceptionMessageCode, err.message)) {
+      //     toast.warning(err.message); //TODO: appropriate messages
+      //   } else {
+      //     toast.warning('Something went wrong, please try again');
+      //   }
+      //   bus.emit('socket:disconnected');
+      // });
       // docEditSocket.on('connect_failed', () => {
       //   toast.warning('Something went wrong, please try again');
       //   bus.emit('socket:disconnected');
       // });
 
-      docEditSocket.io.on('error', () => {
-        console.log('='.repeat(20) + 1);
-      });
-      docEditSocket.on('error', err => {
-        console.log('='.repeat(20) + 2);
-        console.log(err);
-      });
-
       docEditSocket.io.on('reconnect', attempt => {
+        console.log('RECONNECTED');
+
         // editor?.current?.view.dispatch({
         //   effects: peerExtensionCompartment.reconfigure([]),
         // });
-        // console.log('RECONNECTED');
       });
       docEditSocket.io.on('reconnect_attempt', reconnectNumber => {
+        useSocketStore.getState().setStatus('reconnecting');
+
         // console.log('RECONNECT_ATTEMPT', reconnectNumber);
         // removePeerExtension();
-        useSocketStore.getState().setStatus('reconnecting');
       });
-
-      // docEditSocket.io.on('close', e => {
-      //   console.log('CLOSED', e);
-      // });
-      // docEditSocket.io.on('error', e => {
-      //   console.log('ERROR', e);
-      // });
-      // docEditSocket.io.on('open', () => {
-      //   console.log('OPEN');
-      // });
-      // docEditSocket.io.on('packet', e => {
-      //   console.log('PACKET', e);
-      // });
-      // docEditSocket.io.on('ping', () => {
-      //   console.log('PING');
-      // });
-
-      // docEditSocket.io.on('reconnect_error', e => {
-      //   console.log('RECONNECT_ERROR', e);
-      // });
-      // docEditSocket.io.on('reconnect_failed', () => {
-      //   console.log('RECONNECT_FAILED');
-      // });
 
       return () => {
         docEditSocket.io.off('reconnect');
@@ -250,6 +253,8 @@ export const DocumentEditor = (): JSX.Element => {
         docEditSocket.off('connect');
         docEditSocket.off('disconnect');
 
+        docEditSocket.off('fetch_doc');
+        docEditSocket.off('admin_test');
         // docEditSocket.off('connect_error');
         // docEditSocket.off('connect_failed');
 
@@ -259,16 +264,31 @@ export const DocumentEditor = (): JSX.Element => {
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [],
   );
-
-  const x = useCollabButtonStore();
 
   return (
     <>
       <>
         <p>readonly: {!!docStore.readonly ? 'yes' : 'no'}</p>
-        <p>sock status: {socketStore.status}</p>
+        <div className="flex">
+          <p>sock status: {socketStore.status} </p>
+          {socketStore.status === 'connected' ? (
+            <div className="w-5 h-5 bg-green-500 rounded-full"></div>
+          ) : (
+            <div className="w-5 h-5 bg-red-500 rounded-full"></div>
+          )}
+        </div>
+
+        <Button
+          onClick={async () => {
+            const result = await getDocumentText(parseInt(params.documentId));
+            console.log('='.repeat(20));
+            console.log(result);
+          }}
+        >
+          test x
+        </Button>
         <Button
           onClick={() => {
             // insert new text at the end of line
@@ -283,6 +303,13 @@ export const DocumentEditor = (): JSX.Element => {
           instert big text
         </Button>
         <Button onClick={() => selectAll()}>select all</Button>
+        <Button
+          onClick={() => {
+            docEditSocket.connect();
+          }}
+        >
+          connect
+        </Button>
         <Button onClick={() => docEditSocket.emit('test')}>test</Button>
         <Button onClick={() => docEditSocket.disconnect()}>disconnect</Button>
         <Button onClick={() => docEditSocket.io.engine.close()}>low-level diconnect</Button>

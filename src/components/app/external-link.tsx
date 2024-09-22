@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import { ReactPropsWithChildren } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { UrlObject } from 'url';
 
 type Props = ReactPropsWithChildren<{
-  href: string | UrlObject;
+  href: string;
   className?: string;
   noUnderline?: boolean;
 }>;
@@ -14,7 +13,7 @@ export const ExternalLink = (props: Props): JSX.Element => {
 
   return (
     <Link
-      href={href as unknown as UrlObject}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={cn({ underline: !noUnderline }, className, 'cursor-pointer')}

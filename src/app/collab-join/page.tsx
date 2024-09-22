@@ -1,4 +1,6 @@
-export default async function CollabJoin(params: any) {
+'use client';
+
+export default function CollabJoin(params: any) {
   return (
     <>
       <p>Trying to join</p>

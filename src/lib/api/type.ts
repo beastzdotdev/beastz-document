@@ -33,13 +33,13 @@ export class FileStructure {
   parentId: number | null;
   absRelativePath: string | null = null;
   children: FileStructure[] | null;
+  sharedUniqueHash: string;
 }
 
 export class FileStructurePublicShare {
   id: number;
   userId: number;
   fileStructureId: number;
-  uniqueHash: string;
   isDownloadable: boolean;
   isPasswordProtected: boolean;
   isDisabled: boolean;
