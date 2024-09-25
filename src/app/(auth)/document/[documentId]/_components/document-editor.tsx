@@ -13,41 +13,17 @@ import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { cleanURL, copyToClipboard, enumValueIncludes } from '@/lib/utils';
+import { cleanURL, copyToClipboard } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
+import { getDocumentText, getText } from '@/lib/api/definitions';
+import { peerExtensionCompartment } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
+import { constants } from '@/lib/constants';
 import {
+  useDocStore,
   useDocumentShareStore,
   useDocumentStore,
   useSocketStore,
 } from '@/app/(auth)/document/[documentId]/state';
-import { useUserStore } from '@/app/(auth)/state';
-import {
-  getDocumentText,
-  getFileStructurePublicShareEnabled,
-  getText,
-} from '@/lib/api/definitions';
-import {
-  PeerPlugin,
-  peerExtensionCompartment,
-} from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
-import { constants } from '@/lib/constants';
-import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
-
-type SocktState = {
-  doc: Text | undefined;
-  readonly: boolean;
-  setDoc: (value: Text) => void;
-  setReadonly: (value: boolean) => void;
-  setAll: (params: { value: Text; readonly: boolean }) => void;
-};
-
-export const useDocStore = create<SocktState>(set => ({
-  doc: undefined,
-  readonly: true,
-  setDoc: (value: Text) => set({ doc: value }),
-  setReadonly: (value: boolean) => set({ readonly: value }),
-  setAll: ({ value, readonly }) => set({ doc: value, readonly }),
-}));
 
 /**
  * @important
@@ -118,10 +94,6 @@ export const DocumentEditor = (): JSX.Element => {
   useEffect(
     () => {
       (async () => {
-        // first connect socket always
-        // connection is always necessary for locks and everything
-        docEditSocket.connect();
-
         if (!documentShareStore.isEnabled) {
           const { data: text, error: textError } = await getText(
             documentStore.getDocumentStrict().absRelativePath!,
@@ -137,6 +109,10 @@ export const DocumentEditor = (): JSX.Element => {
           docStore.setDoc(Text.of([text]));
         }
 
+        // connect socket
+        docEditSocket.connect();
+
+        // make editor writable
         docStore.setReadonly(false);
       })();
 
@@ -163,6 +139,7 @@ export const DocumentEditor = (): JSX.Element => {
         toast.warning('Sorry reconnection failed, click connection indicator to try reconnecting', {
           duration: 10000,
         });
+
         useSocketStore.getState().setStatus('disconnected');
       });
 
@@ -203,6 +180,7 @@ export const DocumentEditor = (): JSX.Element => {
       // });
 
       return () => {
+        // native events
         docEditSocket.off('connect');
         docEditSocket.off('disconnect');
         docEditSocket.off('error');

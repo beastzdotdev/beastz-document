@@ -3,28 +3,26 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
 import LogoSvg from '@/assets/document.svg';
 
 import { Icon } from '@iconify/react';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+
+import { cleanURL } from '@/lib/utils';
 import { constants } from '@/lib/constants';
+import { ReactChildren } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Profile } from '@/components/app/profile';
 import { ExternalLink } from '@/components/app/external-link';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
-import { ConnectionIndicator } from '@/app/(auth)/document/_components/connection-indicator';
-import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
-import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
-import { ReactChildren } from '@/lib/types';
 import { LayoutTitle } from '@/app/(auth)/document/_components/layout-title';
+import { CollabButton } from '@/app/(auth)/document/_components/collab-button';
+import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
+import { ConnectionIndicator } from '@/app/(auth)/document/_components/connection-indicator';
+import { getFileStructureById, getFileStructurePublicShareEnabled } from '@/lib/api/definitions';
+import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
 import { useDocumentShareStore, useDocumentStore } from '@/app/(auth)/document/[documentId]/state';
-import { useEffect, useState } from 'react';
-import { cleanURL } from '@/lib/utils';
-import {
-  getFileStructureById,
-  getFileStructurePublicShare,
-  getFileStructurePublicShareEnabled,
-} from '@/lib/api/definitions';
 
 export default function DocumentTemplate({ children }: ReactChildren): JSX.Element {
   const router = useRouter();
@@ -32,7 +30,7 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
   const documentStore = useDocumentStore();
   const documentShareStore = useDocumentShareStore();
 
-  const [renderEditor, setRenderEditor] = useState(false);
+  const [initialLoadingIsReady, setInitialLoadingIsReady] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -44,14 +42,14 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
       }
 
       const [
-        { data: docShareEnabled, error: docShareEnabledError },
+        { data: docShareEnabledData, error: docShareEnabledError },
         { data: fsData, error: fsError },
       ] = await Promise.all([
         getFileStructurePublicShareEnabled(documentId),
         getFileStructureById(documentId),
       ]);
 
-      const isShareEnabledProblem = docShareEnabledError || docShareEnabled === undefined;
+      const isShareEnabledProblem = docShareEnabledError || docShareEnabledData === undefined;
       const fsProblem = fsError || fsData === undefined;
 
       if (isShareEnabledProblem || fsProblem) {
@@ -60,23 +58,14 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
         );
       }
 
-      documentShareStore.setAll({ isEnabled: docShareEnabled });
-
-      if (docShareEnabled) {
-        const { data, error } = await getFileStructurePublicShare(documentId);
-
-        if (error || !data) {
-          return router.push(
-            cleanURL(constants.path.oops, { message: 'Something went wrong' }).toString(),
-          );
-        }
-
-        documentShareStore.setAll({ data });
-      }
+      documentShareStore.setAll({
+        isEnabled: docShareEnabledData.enabled,
+        data: docShareEnabledData.data,
+      });
 
       documentStore.setDocument(fsData);
 
-      setRenderEditor(true);
+      setInitialLoadingIsReady(true);
     })();
   }, []);
 
@@ -126,27 +115,33 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
           <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="ion:apps" className="text-xl" />
           </Button>
-          {/* <Button size="icon" variant="ghost" className="focus-visible:ring-0">
-            <Icon icon="icon-park-solid:comments" className="text-xl" />
-          </Button> */}
-          <JoinedPeople people={[{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }]} />
-          {/* Disabled for now */}
-          {/* <CollabButton /> */}
+
+          {initialLoadingIsReady ? (
+            <>
+              {/* Joined people must only exist when share is enabled */}
+              {documentShareStore.isEnabled && (
+                <JoinedPeople people={[{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }]} />
+              )}
+
+              {/* Collab button must always exits */}
+              <CollabButton />
+            </>
+          ) : null}
+
           <Profile />
         </div>
       </header>
 
       <main className="flex-1 overflow-y-auto h-full bg-muted/40">
-        {renderEditor ? children : <Loading />}
+        {initialLoadingIsReady ? children : <BeforeLoadingEditor />}
       </main>
     </div>
   );
 }
 
-const Loading = () => {
+const BeforeLoadingEditor = () => {
   return (
     <>
-      {/* //TODO: can add loading here */}
       <h1 className="text-center mt-5">Loading ....</h1>
     </>
   );

@@ -1,28 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { useSocketStore } from '@/app/(auth)/document/[documentId]/state';
 
 const randImg =
   'https://images.unsplash.com/photo-1541562232579-512a21360020?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
 export const JoinedPeople = ({ people }: { people: { name: string }[] }) => {
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    useSocketStore.subscribe(state => {
-      if (state.status === 'connected') {
-        setShow(true);
-      } else {
-        setShow(false);
-      }
-    });
-  }, []);
-
-  if (!show || !people.length) {
+  if (!people.length) {
     return null;
   }
 
@@ -68,34 +54,16 @@ export const JoinedPeople = ({ people }: { people: { name: string }[] }) => {
           )}
         </div>
       </PopoverTrigger>
+
       <PopoverContent className="p-1.5">
         <Table className="min-w-56">
           <TableBody>
             {people.map((e, i) => (
-              // <TableRow className="rounded-xl border-none hover:bg-transparent" key={i}>
               <TableRow className="rounded-xl border-none" key={i}>
                 <TableCell className="font-medium">{e.name}</TableCell>
-                <TableCell className="flex justify-end">
-                  {/* <Button className="h-6 flex items-center" variant="destructive">
-                    Kick
-                  </Button> */}
-                </TableCell>
               </TableRow>
             ))}
-
-            {/* <TableRow className="rounded-xl border-none hover:bg-transparent pt-2">
-              <TableCell />
-
-              <TableCell className="flex justify-end">
-                <Button className="h-6 flex items-center" variant="destructive">
-                  Disconnect
-                  <Icon icon="fluent:plug-disconnected-48-regular" className="text-xl ml-1" />
-                </Button>
-              </TableCell>
-            </TableRow> */}
           </TableBody>
-
-          {/*  */}
         </Table>
       </PopoverContent>
     </Popover>

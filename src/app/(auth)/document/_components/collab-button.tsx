@@ -3,20 +3,19 @@
 import { toast } from 'sonner';
 import { Icon } from '@iconify/react';
 import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoadingIcon } from '@/components/icons';
 import { cn, copyToClipboard } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useDocumentShareStore } from '@/app/(auth)/document/[documentId]/state';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   createFileStructurePublicShare,
-  getFileStructurePublicShare,
   updateFileStructurePublicShare,
 } from '@/lib/api/definitions';
-import { useDocumentShareStore } from '@/app/(auth)/document/[documentId]/state';
 
 export const CollabButton = () => {
   const documentShareStore = useDocumentShareStore();
@@ -43,17 +42,12 @@ export const CollabButton = () => {
       });
 
       if (error || !data) {
-        documentShareStore.setAll({
-          isLoading: false,
-        });
+        documentShareStore.setAll({ isLoading: false });
 
         return;
       }
 
-      documentShareStore.setAll({
-        isLoading: false,
-        data,
-      });
+      documentShareStore.setAll({ isLoading: false, data: data, isEnabled: !data.isDisabled });
       return;
     }
 
@@ -64,36 +58,8 @@ export const CollabButton = () => {
       return documentShareStore.setAll({ isLoading: false });
     }
 
-    return documentShareStore.setAll({ isLoading: false, data });
+    return documentShareStore.setAll({ isLoading: false, data, isEnabled: !data.isDisabled });
   };
-
-  const getFileStructurePublicShareInit = useCallback(async () => {
-    const documentId = parseInt(params.documentId);
-
-    if (!documentId) {
-      toast.warning('Something went wrong, please try again');
-      return;
-    }
-
-    // to avoid unnecessary click from modal
-    documentShareStore.setModalDisabled(true);
-
-    const { data, error } = await getFileStructurePublicShare(documentId);
-
-    if (error || !data) {
-      return documentShareStore.setAll({ isModalDisabled: false, data: null });
-    }
-
-    return documentShareStore.setAll({ isModalDisabled: false, data });
-  }, [documentShareStore, params.documentId]);
-
-  useEffect(
-    () => {
-      getFileStructurePublicShareInit();
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
 
   const onCopy = useCallback(async (value: string) => {
     setIsCopied(true);
@@ -161,9 +127,7 @@ export const CollabButton = () => {
 
                   <Button disabled={documentShareStore.isLoading} onClick={enableSharingDocument}>
                     {documentShareStore.isLoading ? <LoadingIcon className="mr-2" /> : null}
-                    {documentShareStore.data && !documentShareStore.data.isDisabled
-                      ? 'Disable'
-                      : 'Enable'}
+                    {documentShareStore.isEnabled ? 'Disable' : 'Enable'}
                   </Button>
                 </div>
               </AlertDescription>

@@ -18,9 +18,12 @@ export const getText = async (url: string): Promise<AxiosApiResponse<string>> =>
 
 export const getDocumentText = async (fsId: number): Promise<AxiosApiResponse<string>> => {
   try {
-    const textResponse: AxiosResponse<string> = await api.get(`/file-structure/document-text/${fsId}`, {
-      responseType: 'text',
-    });
+    const textResponse: AxiosResponse<string> = await api.get(
+      `/file-structure/document-text/${fsId}`,
+      {
+        responseType: 'text',
+      },
+    );
 
     return { data: textResponse.data };
   } catch (e: unknown) {
@@ -46,7 +49,9 @@ export const getCurrentUser = async (): Promise<AxiosApiResponse<UserResponseDto
   }
 };
 
-export const getFileStructureById = async (id: number): Promise<AxiosApiResponse<FileStructure>> => {
+export const getFileStructureById = async (
+  id: number,
+): Promise<AxiosApiResponse<FileStructure>> => {
   try {
     const result: AxiosResponse<FileStructure> = await api.get(`/file-structure/${id}`);
 
@@ -76,9 +81,12 @@ export const createFileStructurePublicShare = async (
   fileStructureId: number,
 ): Promise<AxiosApiResponse<FileStructurePublicShare>> => {
   try {
-    const result: AxiosResponse<FileStructurePublicShare> = await api.post('/file-structure-public-share', {
-      fileStructureId,
-    });
+    const result: AxiosResponse<FileStructurePublicShare> = await api.post(
+      '/file-structure-public-share',
+      {
+        fileStructureId,
+      },
+    );
 
     return { data: result.data };
   } catch (e: unknown) {
@@ -88,9 +96,10 @@ export const createFileStructurePublicShare = async (
 
 export const getFileStructurePublicShareEnabled = async (
   fsId: number,
-): Promise<AxiosApiResponse<boolean>> => {
+): Promise<AxiosApiResponse<{ enabled: boolean; data: FileStructurePublicShare | null }>> => {
   try {
-    const result: AxiosResponse<boolean> = await api.get(`/file-structure-public-share/is-enabled/${fsId}`);
+    const result: AxiosResponse<{ enabled: boolean; data: FileStructurePublicShare | null }> =
+      await api.get(`/file-structure-public-share/is-enabled/${fsId}`);
     return { data: result.data };
   } catch (e: unknown) {
     return { error: e as ClientApiError };
@@ -101,11 +110,14 @@ export const getFileStructurePublicShare = async (
   fileStructureId: number,
 ): Promise<AxiosApiResponse<FileStructurePublicShare>> => {
   try {
-    const result: AxiosResponse<FileStructurePublicShare> = await api.get('/file-structure-public-share/get-by', {
-      params: {
-        fileStructureId,
+    const result: AxiosResponse<FileStructurePublicShare> = await api.get(
+      '/file-structure-public-share/get-by',
+      {
+        params: {
+          fileStructureId,
+        },
       },
-    });
+    );
 
     return { data: result.data };
   } catch (e: unknown) {
@@ -119,9 +131,12 @@ export const updateFileStructurePublicShare = async (
 ): Promise<AxiosApiResponse<FileStructurePublicShare>> => {
   try {
     const { isDisabled } = params;
-    const result: AxiosResponse<FileStructurePublicShare> = await api.patch(`/file-structure-public-share/${id}`, {
-      isDisabled,
-    });
+    const result: AxiosResponse<FileStructurePublicShare> = await api.patch(
+      `/file-structure-public-share/${id}`,
+      {
+        isDisabled,
+      },
+    );
 
     return { data: result.data };
   } catch (e: unknown) {
