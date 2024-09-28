@@ -143,3 +143,20 @@ export const updateFileStructurePublicShare = async (
     return { error: e as ClientApiError };
   }
 };
+
+export const replaceFileStructureText = async (
+  id: number | string,
+  params: { text: string; checkEditMode?: boolean },
+): Promise<AxiosApiResponse<void>> => {
+  try {
+    const { text, checkEditMode } = params;
+    const result: AxiosResponse<void> = await api.patch(`/file-structure/replace-text/${id}`, {
+      text,
+      checkEditMode,
+    });
+
+    return { data: result.data };
+  } catch (e: unknown) {
+    return { error: e as ClientApiError };
+  }
+};

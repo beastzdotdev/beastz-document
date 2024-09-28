@@ -1,9 +1,9 @@
+@import './overrides.css';
+@import './theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './overrides.css';
-@import './theme.css';
 
 html,
 body {

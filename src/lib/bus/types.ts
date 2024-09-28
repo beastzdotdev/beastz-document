@@ -8,7 +8,8 @@ export type BusEvents = {
   'editor:select-all': () => void;
   'editor:copy': () => void;
 
-  'editor:fetch-text-again': () => void;
+  'document:save-before-share': () => void;
+  'document:save-before-share:response': (success: boolean) => void;
 
   'open:global-model': (params: {
     type: GlobalModalType;

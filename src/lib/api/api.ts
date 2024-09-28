@@ -35,7 +35,7 @@ const redirectToOops = (message?: string) => {
   const seconParams = message ? { message } : undefined;
   const inlineOopsUrl = cleanURL(constants.path.oops, seconParams).toString();
 
-  // window.location.assign(inlineOopsUrl);
+  window.location.assign(inlineOopsUrl);
 };
 
 const redirectToVerify = () => {

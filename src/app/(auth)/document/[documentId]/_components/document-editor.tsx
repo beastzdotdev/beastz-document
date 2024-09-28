@@ -1,11 +1,10 @@
 'use client';
 
 import * as themes from '@uiw/codemirror-themes-all';
-import CodeMirror, { EditorState, EditorView, Extension, Text } from '@uiw/react-codemirror';
-import { create } from 'zustand';
 import { toast } from 'sonner';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
 
 import { bus } from '@/lib/bus';
 import { Button } from '@/components/ui/button';
@@ -13,9 +12,9 @@ import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { cleanURL, copyToClipboard, sleep } from '@/lib/utils';
+import { copyToClipboard, sleep } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
-import { getDocumentText, getText } from '@/lib/api/definitions';
+import { getDocumentText, replaceFileStructureText } from '@/lib/api/definitions';
 import {
   PeerPlugin,
   peerExtensionCompartment,
@@ -35,8 +34,8 @@ import { useUserStore } from '@/app/(auth)/state';
  * ! if you want to access state current from codemirror 6 then access it view editor.view.state
  */
 export const DocumentEditor = (): JSX.Element => {
+  const textDiffFromBeforeSave = useRef(false);
   const isInitPullDocFull = useRef(true);
-  const router = useRouter();
   const socketStore = useSocketStore();
   const docStore = useDocStore();
   const documentStore = useDocumentStore();
@@ -92,56 +91,46 @@ export const DocumentEditor = (): JSX.Element => {
     return;
   }, [view]);
 
-  const handleKeyDownGlobally = useCallback((e: KeyboardEvent) => {
+  const handleSaveBeforeShare = async (): Promise<boolean> => {
+    if (textDiffFromBeforeSave.current) {
+      const newText = view().state.doc.toString();
+
+      const { error } = await replaceFileStructureText(params.documentId, {
+        text: newText,
+        checkEditMode: false,
+      });
+
+      if (error) {
+        toast.warning('Something went wrong, please try again');
+        return false;
+      }
+
+      // update is important for init doc is in new state
+      docStore.setInitDoc(Text.of([newText]));
+      textDiffFromBeforeSave.current = false;
+      document.title = document.title.replace(constants.general.tabEditModePrefix, '');
+    }
+
+    return true;
+  };
+
+  const handleKeyDownGlobally = async (e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault();
       e.stopPropagation();
-      return;
+
+      if (documentShareStore.isEnabled) {
+        return;
+      }
+
+      await handleSaveBeforeShare();
     }
-  }, []);
-
-  const setText = (text: string) => {
-    if (isInitPullDocFull.current) {
-      docStore.setInitDoc(Text.of([text]));
-    } else {
-      // replace all with new text
-      view().dispatch({
-        changes: {
-          from: 0,
-          to: view().state.doc.length,
-          insert: text,
-        },
-      });
-    }
-
-    isInitPullDocFull.current = false; // disable initial
-
-    // make editor writable
-    docStore.setReadonly(false);
   };
 
   useEffect(() => {
     bus.on('editor:select-all', selectAll);
     bus.on('editor:copy', copySelected);
   }, [copySelected, selectAll]);
-
-  const init = async () => {
-    if (!documentShareStore.isEnabled) {
-      const { data: text, error: textError } = await getText(
-        documentStore.getDocumentStrict().absRelativePath!,
-      );
-
-      if (textError || typeof text !== 'string') {
-        router.push(cleanURL(constants.path.oops, { message: 'Something went wrong' }).toString());
-        return;
-      }
-
-      setText(text);
-    }
-
-    // connect socket
-    docEditSocket.connect();
-  };
 
   useEffect(() => {
     const view = editorRef?.current?.view;
@@ -162,12 +151,18 @@ export const DocumentEditor = (): JSX.Element => {
   useEffect(
     () => {
       window.addEventListener('keydown', handleKeyDownGlobally);
-
-      init();
-
-      bus.on('editor:fetch-text-again', () => {
-        init();
+      window.addEventListener('beforeunload', e => {
+        if (textDiffFromBeforeSave.current) {
+          e.preventDefault();
+        }
       });
+      bus.on('document:save-before-share', async () => {
+        bus.emit('document:save-before-share:response', await handleSaveBeforeShare());
+      });
+
+      if (!docEditSocket.connected) {
+        docEditSocket.connect();
+      }
 
       docEditSocket.on('connect', async () => {
         console.log('CONNECTEd');
@@ -205,10 +200,26 @@ export const DocumentEditor = (): JSX.Element => {
           return;
         }
 
-        setText(text);
+        if (isInitPullDocFull.current) {
+          docStore.setInitDoc(Text.of([text])); // this only works on init
+        } else {
+          // replace all with new text
+          view().dispatch({
+            changes: {
+              from: 0,
+              to: view().state.doc.length,
+              insert: text,
+            },
+          });
+        }
+        // disable initial
+        isInitPullDocFull.current = false;
+
+        // loading state for modal button and also readonly state for editor will be resolved in socket event response
+        docStore.setReadonly(false);
+        documentShareStore.setIsLoading(false);
       });
 
-      // User defined events
       docEditSocket.on(constants.socket.events.RetryConnection, async () => {
         docEditSocket.disconnect();
         await sleep(1000);
@@ -312,6 +323,30 @@ export const DocumentEditor = (): JSX.Element => {
       <CodeMirror
         ref={editorRef}
         value={docStore.initDoc?.toString()}
+        onChange={value => {
+          if (documentShareStore.isEnabled) {
+            docStore.setInitDoc(Text.of([value]));
+            return;
+          }
+
+          console.log('='.repeat(20));
+          console.log(value);
+          console.log(docStore.initDoc?.toString());
+
+          textDiffFromBeforeSave.current = value !== docStore.initDoc?.toString();
+
+          const tabTitleStartsWithPrefix = document.title.startsWith(
+            constants.general.tabEditModePrefix,
+          );
+
+          if (textDiffFromBeforeSave.current && !tabTitleStartsWithPrefix) {
+            document.title = constants.general.tabEditModePrefix + document.title;
+          }
+
+          if (!textDiffFromBeforeSave.current && tabTitleStartsWithPrefix) {
+            document.title = document.title.replace(constants.general.tabEditModePrefix, '');
+          }
+        }}
         width="1050px"
         className="w-fit mx-auto h-full cm-custom"
         autoFocus

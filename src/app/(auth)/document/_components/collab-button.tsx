@@ -5,23 +5,20 @@ import { Icon } from '@iconify/react';
 import { useParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
 
+import { bus } from '@/lib/bus';
+import { constants } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
+import { copyToClipboard } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { LoadingIcon } from '@/components/icons';
-import { copyToClipboard, sleep } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-  useDocStore,
-  useDocumentShareStore,
-  useDocumentStore,
-} from '@/app/(auth)/document/[documentId]/state';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
+import { useDocStore, useDocumentShareStore } from '@/app/(auth)/document/[documentId]/state';
 import {
   createFileStructurePublicShare,
   updateFileStructurePublicShare,
 } from '@/lib/api/definitions';
-import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
-import { bus } from '@/lib/bus';
 
 export const CollabButton = () => {
   const documentShareStore = useDocumentShareStore();
@@ -38,32 +35,39 @@ export const CollabButton = () => {
       return;
     }
 
-    docStore.setReadonly(true);
+    docStore.setReadonly(true); // make editor readonly
     documentShareStore.setIsLoading(true);
+
+    const success = await new Promise(resolve => {
+      bus.once('document:save-before-share:response', value => {
+        resolve(value);
+      });
+
+      bus.emit('document:save-before-share');
+    });
+
+    if (!success) {
+      toast.warning('Something went wrong, please try again');
+      return;
+    }
 
     // this is for toggling state if exists share data already
     if (documentShareStore.data) {
-      const isPublicShareDisabled = !documentShareStore.data.isDisabled;
-
       const { data, error } = await updateFileStructurePublicShare(documentShareStore.data.id, {
-        isDisabled: isPublicShareDisabled,
+        isDisabled: !documentShareStore.data.isDisabled,
       });
 
       if (error || !data) {
-        documentShareStore.setAll({ isLoading: false });
+        toast.warning('Something went wrong, please try again');
         docStore.setReadonly(false);
+        documentShareStore.setIsLoading(false);
         return;
       }
 
-      documentShareStore.setAll({ isLoading: false, data: data, isEnabled: !data.isDisabled });
-      docEditSocket.disconnect();
-      await sleep(1000);
-      docEditSocket.connect();
+      documentShareStore.setAll({ data: data, isEnabled: !data.isDisabled });
 
-      if (isPublicShareDisabled) {
-        bus.emit('editor:fetch-text-again');
-      }
-
+      // loading state for modal button and also readonly state for editor will be resolved in socket event response
+      docEditSocket.emit(constants.socket.events.PullDocFull);
       return;
     }
 
@@ -71,21 +75,16 @@ export const CollabButton = () => {
     const { data, error } = await createFileStructurePublicShare(documentId);
 
     if (error || !data) {
-      documentShareStore.setAll({ isLoading: false });
+      toast.warning('Something went wrong, please try again');
       docStore.setReadonly(false);
+      documentShareStore.setIsLoading(false);
       return;
     }
 
-    documentShareStore.setAll({ isLoading: false, data, isEnabled: !data.isDisabled });
-    docEditSocket.disconnect();
-    await sleep(1000);
-    docEditSocket.connect();
+    documentShareStore.setAll({ data, isEnabled: !data.isDisabled });
 
-    if (data.isDisabled) {
-      bus.emit('editor:fetch-text-again');
-    }
-
-    return;
+    // loading state for modal button and also readonly state for editor will be resolved in socket event response
+    docEditSocket.emit(constants.socket.events.PullDocFull);
   };
 
   const onCopy = useCallback(async (value: string) => {

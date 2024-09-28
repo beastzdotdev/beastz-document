@@ -7,7 +7,7 @@ export const PeerPlugin = (socket: Socket, sharedUniqueHash: string) => {
     class {
       constructor(private view: EditorView) {
         socket.on(constants.socket.events.PullDoc, (data: unknown) => {
-          this.view.dispatch({
+          view.dispatch({
             scrollIntoView: false,
             changes: ChangeSet.fromJSON(data),
           });

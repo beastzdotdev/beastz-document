@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "start:dev": "npm run dev",
+    "start:dev": "npm run dev:turbo",
     "dev:turbo": "next dev --turbo",
     "dev:server": "nodemon ./socket.js",
     "build": "next build",

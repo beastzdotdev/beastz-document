@@ -43,6 +43,7 @@ export const constants = {
   },
 
   general: {
+    tabEditModePrefix: '● ',
     localStorageViewTypeKey: 'default_items_view',
     queryTitleForDocument: 'title',
   },
@@ -55,6 +56,7 @@ export const constants = {
       UserLeft: 'user_left',
       UserJoined: 'user_joined',
       RetryConnection: 'retry_connection',
+      DocumentShareDisabled: 'document_share_disabled',
     },
   },
 };
