@@ -2,7 +2,7 @@ import { Socket } from 'socket.io-client';
 import { constants } from '@/lib/constants';
 import { ChangeSet, EditorView, ViewPlugin, ViewUpdate, Compartment } from '@uiw/react-codemirror';
 
-export const PeerPlugin = (userId: number, socket: Socket, sharedUniqueHash: string) => {
+export const PeerPlugin = (socket: Socket, sharedUniqueHash: string) => {
   return ViewPlugin.fromClass(
     class {
       constructor(private view: EditorView) {
@@ -17,6 +17,7 @@ export const PeerPlugin = (userId: number, socket: Socket, sharedUniqueHash: str
       update(update: ViewUpdate) {
         // docChanged for only user input (this also detect selections, effect, etc)
         // selectionSet is checked for only pushing my own updates and not set by pull
+
         if (update.docChanged && update.selectionSet) {
           this.push(update);
         }

@@ -28,9 +28,9 @@ type DocumentShareState = {
 };
 
 type UserDocStore = {
-  doc: Text | undefined;
+  initDoc: Text | undefined;
   readonly: boolean;
-  setDoc: (value: Text) => void;
+  setInitDoc: (value: Text) => void;
   setReadonly: (value: boolean) => void;
   setAll: (params: { value: Text; readonly: boolean }) => void;
   clear: () => void;
@@ -69,10 +69,10 @@ export const useDocumentShareStore = create<DocumentShareState>((set, get) => ({
 }));
 
 export const useDocStore = create<UserDocStore>(set => ({
-  doc: undefined,
+  initDoc: undefined,
   readonly: true,
-  setDoc: (value: Text) => set({ doc: value }),
+  setInitDoc: (value: Text) => set({ initDoc: value }),
   setReadonly: (value: boolean) => set({ readonly: value }),
-  setAll: ({ value, readonly }) => set({ doc: value, readonly }),
-  clear: () => set({ doc: undefined, readonly: true }),
+  setAll: ({ value, readonly }) => set({ initDoc: value, readonly }),
+  clear: () => set({ initDoc: undefined, readonly: true }),
 }));

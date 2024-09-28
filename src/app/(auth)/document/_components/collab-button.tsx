@@ -8,17 +8,24 @@ import { useCallback, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoadingIcon } from '@/components/icons';
-import { cn, copyToClipboard } from '@/lib/utils';
+import { copyToClipboard, sleep } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useDocumentShareStore } from '@/app/(auth)/document/[documentId]/state';
+import {
+  useDocStore,
+  useDocumentShareStore,
+  useDocumentStore,
+} from '@/app/(auth)/document/[documentId]/state';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   createFileStructurePublicShare,
   updateFileStructurePublicShare,
 } from '@/lib/api/definitions';
+import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
+import { bus } from '@/lib/bus';
 
 export const CollabButton = () => {
   const documentShareStore = useDocumentShareStore();
+  const docStore = useDocStore();
   const params = useParams<{ documentId: string }>();
   const [isCopied, setIsCopied] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -31,23 +38,32 @@ export const CollabButton = () => {
       return;
     }
 
+    docStore.setReadonly(true);
     documentShareStore.setIsLoading(true);
 
     // this is for toggling state if exists share data already
     if (documentShareStore.data) {
-      const isDisabled = !documentShareStore.data.isDisabled;
+      const isPublicShareDisabled = !documentShareStore.data.isDisabled;
 
       const { data, error } = await updateFileStructurePublicShare(documentShareStore.data.id, {
-        isDisabled,
+        isDisabled: isPublicShareDisabled,
       });
 
       if (error || !data) {
         documentShareStore.setAll({ isLoading: false });
-
+        docStore.setReadonly(false);
         return;
       }
 
       documentShareStore.setAll({ isLoading: false, data: data, isEnabled: !data.isDisabled });
+      docEditSocket.disconnect();
+      await sleep(1000);
+      docEditSocket.connect();
+
+      if (isPublicShareDisabled) {
+        bus.emit('editor:fetch-text-again');
+      }
+
       return;
     }
 
@@ -55,10 +71,21 @@ export const CollabButton = () => {
     const { data, error } = await createFileStructurePublicShare(documentId);
 
     if (error || !data) {
-      return documentShareStore.setAll({ isLoading: false });
+      documentShareStore.setAll({ isLoading: false });
+      docStore.setReadonly(false);
+      return;
     }
 
-    return documentShareStore.setAll({ isLoading: false, data, isEnabled: !data.isDisabled });
+    documentShareStore.setAll({ isLoading: false, data, isEnabled: !data.isDisabled });
+    docEditSocket.disconnect();
+    await sleep(1000);
+    docEditSocket.connect();
+
+    if (data.isDisabled) {
+      bus.emit('editor:fetch-text-again');
+    }
+
+    return;
   };
 
   const onCopy = useCallback(async (value: string) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import * as themes from '@uiw/codemirror-themes-all';
-import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
+import CodeMirror, { EditorState, EditorView, Extension, Text } from '@uiw/react-codemirror';
 import { create } from 'zustand';
 import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
@@ -13,7 +13,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { cleanURL, copyToClipboard } from '@/lib/utils';
+import { cleanURL, copyToClipboard, sleep } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 import { getDocumentText, getText } from '@/lib/api/definitions';
 import {
@@ -35,6 +35,7 @@ import { useUserStore } from '@/app/(auth)/state';
  * ! if you want to access state current from codemirror 6 then access it view editor.view.state
  */
 export const DocumentEditor = (): JSX.Element => {
+  const isInitPullDocFull = useRef(true);
   const router = useRouter();
   const socketStore = useSocketStore();
   const docStore = useDocStore();
@@ -91,8 +92,29 @@ export const DocumentEditor = (): JSX.Element => {
     return;
   }, [view]);
 
-  const setText = async (text: string) => {
-    docStore.setDoc(Text.of([text]));
+  const handleKeyDownGlobally = useCallback((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+  }, []);
+
+  const setText = (text: string) => {
+    if (isInitPullDocFull.current) {
+      docStore.setInitDoc(Text.of([text]));
+    } else {
+      // replace all with new text
+      view().dispatch({
+        changes: {
+          from: 0,
+          to: view().state.doc.length,
+          insert: text,
+        },
+      });
+    }
+
+    isInitPullDocFull.current = false; // disable initial
 
     // make editor writable
     docStore.setReadonly(false);
@@ -103,6 +125,24 @@ export const DocumentEditor = (): JSX.Element => {
     bus.on('editor:copy', copySelected);
   }, [copySelected, selectAll]);
 
+  const init = async () => {
+    if (!documentShareStore.isEnabled) {
+      const { data: text, error: textError } = await getText(
+        documentStore.getDocumentStrict().absRelativePath!,
+      );
+
+      if (textError || typeof text !== 'string') {
+        router.push(cleanURL(constants.path.oops, { message: 'Something went wrong' }).toString());
+        return;
+      }
+
+      setText(text);
+    }
+
+    // connect socket
+    docEditSocket.connect();
+  };
+
   useEffect(() => {
     const view = editorRef?.current?.view;
 
@@ -111,11 +151,7 @@ export const DocumentEditor = (): JSX.Element => {
     }
 
     const plugin = documentShareStore.isEnabled
-      ? PeerPlugin(
-          user.getUser().id,
-          docEditSocket,
-          documentStore.getDocumentStrict().sharedUniqueHash,
-        )
+      ? PeerPlugin(docEditSocket, documentStore.getDocumentStrict().sharedUniqueHash)
       : [];
 
     view.dispatch({
@@ -125,28 +161,13 @@ export const DocumentEditor = (): JSX.Element => {
 
   useEffect(
     () => {
-      (async () => {
-        console.log('='.repeat(20));
-        console.log('is enabled', documentShareStore.isEnabled);
+      window.addEventListener('keydown', handleKeyDownGlobally);
 
-        if (!documentShareStore.isEnabled) {
-          const { data: text, error: textError } = await getText(
-            documentStore.getDocumentStrict().absRelativePath!,
-          );
+      init();
 
-          if (textError || typeof text !== 'string') {
-            router.push(
-              cleanURL(constants.path.oops, { message: 'Something went wrong' }).toString(),
-            );
-            return;
-          }
-
-          setText(text);
-        }
-
-        // connect socket
-        docEditSocket.connect();
-      })();
+      bus.on('editor:fetch-text-again', () => {
+        init();
+      });
 
       docEditSocket.on('connect', async () => {
         console.log('CONNECTEd');
@@ -187,7 +208,16 @@ export const DocumentEditor = (): JSX.Element => {
         setText(text);
       });
 
+      // User defined events
+      docEditSocket.on(constants.socket.events.RetryConnection, async () => {
+        docEditSocket.disconnect();
+        await sleep(1000);
+        docEditSocket.connect();
+      });
+
       return () => {
+        window.removeEventListener('keydown', handleKeyDownGlobally);
+
         // native events
         docEditSocket.off('connect');
         docEditSocket.off('disconnect');
@@ -197,6 +227,7 @@ export const DocumentEditor = (): JSX.Element => {
         docEditSocket.io.off('reconnect_failed');
 
         docEditSocket.off(constants.socket.events.PullDocFull);
+        docEditSocket.off(constants.socket.events.RetryConnection);
 
         docEditSocket.disconnect();
 
@@ -212,8 +243,9 @@ export const DocumentEditor = (): JSX.Element => {
 
   return (
     <>
-      {/* <>
+      <>
         <p>readonly: {!!docStore.readonly ? 'yes' : 'no'}</p>
+        <p>doc share: {JSON.stringify(documentShareStore)} </p>
         <div className="flex">
           <p>sock status: {socketStore.status} </p>
           {socketStore.status === 'connected' ? (
@@ -275,11 +307,11 @@ export const DocumentEditor = (): JSX.Element => {
         >
           test (open:global-model)
         </Button>
-      </> */}
+      </>
 
       <CodeMirror
         ref={editorRef}
-        value={docStore.doc?.toString()}
+        value={docStore.initDoc?.toString()}
         width="1050px"
         className="w-fit mx-auto h-full cm-custom"
         autoFocus

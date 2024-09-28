@@ -8,9 +8,7 @@ export type BusEvents = {
   'editor:select-all': () => void;
   'editor:copy': () => void;
 
-  'socket:connected': () => void;
-  'socket:reconnecting': () => void;
-  'socket:disconnected': () => void;
+  'editor:fetch-text-again': () => void;
 
   'open:global-model': (params: {
     type: GlobalModalType;

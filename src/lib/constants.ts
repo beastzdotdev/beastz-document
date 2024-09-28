@@ -54,6 +54,7 @@ export const constants = {
       PullDocFull: 'pull_doc_full',
       UserLeft: 'user_left',
       UserJoined: 'user_joined',
+      RetryConnection: 'retry_connection',
     },
   },
 };
