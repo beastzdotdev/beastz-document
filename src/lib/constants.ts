@@ -52,6 +52,8 @@ export const constants = {
       PushDoc: 'push_doc',
       PullDoc: 'pull_doc',
       PullDocFull: 'pull_doc_full',
-    }
-  }
+      UserLeft: 'user_left',
+      UserJoined: 'user_joined',
+    },
+  },
 };

@@ -110,17 +110,23 @@ export const DocumentEditor = (): JSX.Element => {
       return;
     }
 
-    const plugin = documentShareStore.isEnabled ? PeerPlugin(user.getUser().id, docEditSocket) : [];
+    const plugin = documentShareStore.isEnabled
+      ? PeerPlugin(
+          user.getUser().id,
+          docEditSocket,
+          documentStore.getDocumentStrict().sharedUniqueHash,
+        )
+      : [];
 
-    console.log('='.repeat(20));
-    console.log(view);
-    console.log(plugin);
-    console.log('='.repeat(20));
+    // console.log('='.repeat(20));
+    // console.log(view);
+    // console.log(plugin);
+    // console.log('='.repeat(20));
 
     view.dispatch({
       effects: peerExtensionCompartment.reconfigure(plugin),
     });
-  }, [documentShareStore.isEnabled, user, editorRef.current?.view]);
+  }, [documentShareStore.isEnabled, user, editorRef.current?.view, documentStore]);
 
   useEffect(
     () => {

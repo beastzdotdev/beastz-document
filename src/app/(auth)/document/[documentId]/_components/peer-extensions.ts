@@ -2,7 +2,7 @@ import { Socket } from 'socket.io-client';
 import { constants } from '@/lib/constants';
 import { ChangeSet, EditorView, ViewPlugin, ViewUpdate, Compartment } from '@uiw/react-codemirror';
 
-export const PeerPlugin = (userId: number, socket: Socket) => {
+export const PeerPlugin = (userId: number, socket: Socket, sharedUniqueHash: string) => {
   return ViewPlugin.fromClass(
     class {
       constructor(private view: EditorView) {
@@ -29,7 +29,7 @@ export const PeerPlugin = (userId: number, socket: Socket) => {
 
         const data = {
           changes: update.changes.toJSON(),
-          userId,
+          sharedUniqueHash,
         };
 
         socket.emit(constants.socket.events.PushDoc, data);
