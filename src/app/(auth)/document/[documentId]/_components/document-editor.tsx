@@ -118,11 +118,6 @@ export const DocumentEditor = (): JSX.Element => {
         )
       : [];
 
-    // console.log('='.repeat(20));
-    // console.log(view);
-    // console.log(plugin);
-    // console.log('='.repeat(20));
-
     view.dispatch({
       effects: peerExtensionCompartment.reconfigure(plugin),
     });

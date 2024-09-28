@@ -82,57 +82,55 @@ export const CollabButton = () => {
           className="p-1.5 min-w-96 mr-16 mt-2"
           onCloseAutoFocus={() => setIsCopied(false)}
         >
-          <div className={cn({ 'pointer-events-none': documentShareStore.isModalDisabled })}>
-            <Alert className="border-none">
-              <Icon icon="mdi:invite" className="text-xl !top-3" />
-              <AlertTitle className="flex">
-                <p>Invite Link</p>
-              </AlertTitle>
+          <Alert className="border-none">
+            <Icon icon="mdi:invite" className="text-xl !top-3" />
+            <AlertTitle className="flex">
+              <p>Invite Link</p>
+            </AlertTitle>
 
-              <AlertDescription className="text-muted-foreground">
+            <AlertDescription className="text-muted-foreground">
+              {documentShareStore.data && !documentShareStore.data.isDisabled ? (
+                <>
+                  <div>
+                    Do not share this link with anyone you do not want to collaborate with !
+                  </div>
+                  <div className="flex w-full items-center space-x-2 mt-3">
+                    <Input
+                      className="flex-1 cursor-default"
+                      value={documentShareStore.data.joinLink}
+                      tabIndex={-1}
+                      autoFocus={false}
+                      readOnly
+                    />
+                    <Button
+                      onClick={() => onCopy(documentShareStore?.data?.joinLink ?? '')}
+                      className="w-16"
+                      variant="outline"
+                    >
+                      {isCopied ? 'Copied' : 'Copy'}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div>Make this document shareable with anyone</div>
+              )}
+
+              <div className="flex justify-end mt-4">
                 {documentShareStore.data && !documentShareStore.data.isDisabled ? (
                   <>
-                    <div>
-                      Do not share this link with anyone you do not want to collaborate with !
-                    </div>
-                    <div className="flex w-full items-center space-x-2 mt-3">
-                      <Input
-                        className="flex-1 cursor-default"
-                        value={documentShareStore.data.joinLink}
-                        tabIndex={-1}
-                        autoFocus={false}
-                        readOnly
-                      />
-                      <Button
-                        onClick={() => onCopy(documentShareStore?.data?.joinLink ?? '')}
-                        className="w-16"
-                        variant="outline"
-                      >
-                        {isCopied ? 'Copied' : 'Copy'}
-                      </Button>
-                    </div>
+                    <Button disabled variant="outline">
+                      Regen (soon)
+                    </Button>
                   </>
-                ) : (
-                  <div>Make this document shareable with anyone</div>
-                )}
+                ) : null}
 
-                <div className="flex justify-end mt-4">
-                  {documentShareStore.data && !documentShareStore.data.isDisabled ? (
-                    <>
-                      <Button disabled variant="outline">
-                        Regen (soon)
-                      </Button>
-                    </>
-                  ) : null}
-
-                  <Button disabled={documentShareStore.isLoading} onClick={enableSharingDocument}>
-                    {documentShareStore.isLoading ? <LoadingIcon className="mr-2" /> : null}
-                    {documentShareStore.isEnabled ? 'Disable' : 'Enable'}
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
-          </div>
+                <Button disabled={documentShareStore.isLoading} onClick={enableSharingDocument}>
+                  {documentShareStore.isLoading ? <LoadingIcon className="mr-2" /> : null}
+                  {documentShareStore.isEnabled ? 'Disable' : 'Enable'}
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
         </PopoverContent>
       </Popover>
     </>

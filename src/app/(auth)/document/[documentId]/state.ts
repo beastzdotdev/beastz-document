@@ -22,9 +22,7 @@ type DocumentShareState = {
   isEnabled: boolean;
   data: FileStructurePublicShare | null;
   isLoading: boolean;
-  isModalDisabled: boolean;
   setIsLoading: (value: boolean) => void;
-  setModalDisabled: (value: boolean) => void;
   setAll: (value: Partial<DocumentShareState>) => void;
   clear: () => void;
 };
@@ -58,22 +56,16 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
     return fs;
   },
-  clear() {
-    set({ document: null });
-  },
+  clear: () => set({ document: null }),
 }));
 
 export const useDocumentShareStore = create<DocumentShareState>((set, get) => ({
   isEnabled: false,
   data: null,
   isLoading: false,
-  isModalDisabled: false,
   setIsLoading: value => set({ isLoading: value }),
-  setModalDisabled: value => set({ isModalDisabled: value }),
   setAll: value => set(value),
-  clear() {
-    set({ isEnabled: false, data: null, isLoading: false, isModalDisabled: false });
-  },
+  clear: () => set({ isEnabled: false, data: null, isLoading: false }),
 }));
 
 export const useDocStore = create<UserDocStore>(set => ({
@@ -82,7 +74,5 @@ export const useDocStore = create<UserDocStore>(set => ({
   setDoc: (value: Text) => set({ doc: value }),
   setReadonly: (value: boolean) => set({ readonly: value }),
   setAll: ({ value, readonly }) => set({ doc: value, readonly }),
-  clear() {
-    set({ doc: undefined, readonly: true });
-  },
+  clear: () => set({ doc: undefined, readonly: true }),
 }));
