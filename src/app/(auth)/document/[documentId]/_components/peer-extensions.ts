@@ -2,7 +2,6 @@ import { Socket } from 'socket.io-client';
 import { constants } from '@/lib/constants';
 import { ChangeSet, EditorView, ViewPlugin, ViewUpdate, Compartment } from '@uiw/react-codemirror';
 
-
 export const PeerPlugin = (userId: number, socket: Socket) => {
   return ViewPlugin.fromClass(
     class {
@@ -12,15 +11,6 @@ export const PeerPlugin = (userId: number, socket: Socket) => {
             scrollIntoView: false,
             changes: ChangeSet.fromJSON(data),
           });
-        });
-
-        socket.on(constants.socket.events.PullDocFull, (data: unknown) => {
-          console.log(data);
-
-          // this.view.dispatch({
-          //   scrollIntoView: false,
-          //   changes: ChangeSet.fromJSON(data),
-          // });
         });
       }
 
@@ -47,12 +37,9 @@ export const PeerPlugin = (userId: number, socket: Socket) => {
 
       destroy() {
         // remove socket listeners for document edit
-        [
-          constants.socket.events.PullDoc,
-          constants.socket.events.PushDoc,
-        ].forEach((socketEvent) => {
+        [constants.socket.events.PullDoc, constants.socket.events.PushDoc].forEach(socketEvent => {
           socket.off(socketEvent);
-        })
+        });
       }
     },
   );

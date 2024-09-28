@@ -16,7 +16,10 @@ import { docConfigBundle } from '@/components/app/editor/extensions';
 import { cleanURL, copyToClipboard } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 import { getDocumentText, getText } from '@/lib/api/definitions';
-import { peerExtensionCompartment } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
+import {
+  PeerPlugin,
+  peerExtensionCompartment,
+} from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
 import { constants } from '@/lib/constants';
 import {
   useDocStore,
@@ -24,6 +27,7 @@ import {
   useDocumentStore,
   useSocketStore,
 } from '@/app/(auth)/document/[documentId]/state';
+import { useUserStore } from '@/app/(auth)/state';
 
 /**
  * @important
@@ -37,6 +41,7 @@ export const DocumentEditor = (): JSX.Element => {
   const documentStore = useDocumentStore();
   const documentShareStore = useDocumentShareStore();
   const params = useParams<{ documentId: string }>();
+  const user = useUserStore();
 
   const editorRef = useRef<{ view: EditorView }>(null);
   const [theme, _setTheme] = useState<EditorTheme>('dark');
@@ -86,14 +91,43 @@ export const DocumentEditor = (): JSX.Element => {
     return;
   }, [view]);
 
+  const setText = async (text: string) => {
+    docStore.setDoc(Text.of([text]));
+
+    // make editor writable
+    docStore.setReadonly(false);
+  };
+
   useEffect(() => {
     bus.on('editor:select-all', selectAll);
     bus.on('editor:copy', copySelected);
   }, [copySelected, selectAll]);
 
+  useEffect(() => {
+    const view = editorRef?.current?.view;
+
+    if (!view) {
+      return;
+    }
+
+    const plugin = documentShareStore.isEnabled ? PeerPlugin(user.getUser().id, docEditSocket) : [];
+
+    console.log('='.repeat(20));
+    console.log(view);
+    console.log(plugin);
+    console.log('='.repeat(20));
+
+    view.dispatch({
+      effects: peerExtensionCompartment.reconfigure(plugin),
+    });
+  }, [documentShareStore.isEnabled, user, editorRef.current?.view]);
+
   useEffect(
     () => {
       (async () => {
+        console.log('='.repeat(20));
+        console.log('is enabled', documentShareStore.isEnabled);
+
         if (!documentShareStore.isEnabled) {
           const { data: text, error: textError } = await getText(
             documentStore.getDocumentStrict().absRelativePath!,
@@ -106,14 +140,11 @@ export const DocumentEditor = (): JSX.Element => {
             return;
           }
 
-          docStore.setDoc(Text.of([text]));
+          setText(text);
         }
 
         // connect socket
         docEditSocket.connect();
-
-        // make editor writable
-        docStore.setReadonly(false);
       })();
 
       docEditSocket.on('connect', async () => {
@@ -144,40 +175,16 @@ export const DocumentEditor = (): JSX.Element => {
       });
 
       // User defined events
-      // docEditSocket.on(constants.socket.events.PullDocFull, async () => {
-      //   console.log('calling');
-      //   console.log(parseInt(params.documentId));
-      //   const { data, error } = await getDocumentText(parseInt(params.documentId));
+      docEditSocket.on(constants.socket.events.PullDocFull, async () => {
+        const { data: text, error } = await getDocumentText(parseInt(params.documentId));
 
-      //   console.log('='.repeat(20));
-      //   console.log({ data, error });
+        if (error || text === undefined) {
+          toast.error('Sorry, could not load document');
+          return;
+        }
 
-      //   if (error || data === undefined) {
-      //     toast.error('Sorry, could not load document');
-      //     return;
-      //   }
-
-      //   docStore.setDoc(Text.of([data]));
-
-      //   // const userId = userStore.getUser().id;
-
-      //   ////TODO I think this should be in other place
-      //   // view().dispatch({
-      //   //   effects: peerExtensionCompartment.reconfigure(PeerPlugin(userId, docEditSocket)),
-      //   // });
-      // });
-
-      // docEditSocket.io.on('reconnect', attempt => {
-      //   console.log('RECONNECTED', attempt);
-
-      //   // editor?.current?.view.dispatch({
-      //   //   effects: peerExtensionCompartment.reconfigure([]),
-      //   // });
-      // });
-      // docEditSocket.on('admin_test', payload => {
-      //   console.log('='.repeat(20) + '[ADMIN]');
-      //   console.log(payload);
-      // });
+        setText(text);
+      });
 
       return () => {
         // native events
@@ -190,13 +197,12 @@ export const DocumentEditor = (): JSX.Element => {
 
         docEditSocket.off(constants.socket.events.PullDocFull);
 
-        // docEditSocket.off('admin_test');
-        // docEditSocket.off('connect_error');
-        // docEditSocket.off('connect_failed');
+        docEditSocket.disconnect();
 
-        // docEditSocket.off('pullUpdateResponse');
-        // docEditSocket.off('pushUpdateResponse');
-        // docEditSocket.off('getDocumentResponse');
+        socketStore.clear();
+        docStore.clear();
+        documentStore.clear();
+        documentShareStore.clear();
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -205,7 +211,7 @@ export const DocumentEditor = (): JSX.Element => {
 
   return (
     <>
-      <>
+      {/* <>
         <p>readonly: {!!docStore.readonly ? 'yes' : 'no'}</p>
         <div className="flex">
           <p>sock status: {socketStore.status} </p>
@@ -268,7 +274,7 @@ export const DocumentEditor = (): JSX.Element => {
         >
           test (open:global-model)
         </Button>
-      </>
+      </> */}
 
       <CodeMirror
         ref={editorRef}

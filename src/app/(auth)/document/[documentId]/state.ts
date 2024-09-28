@@ -8,12 +8,14 @@ import { create } from 'zustand';
 type SocktState = {
   status: SocketStatus;
   setStatus: (status: SocketStatus) => void;
+  clear: () => void;
 };
 
 type DocumentState = {
   document: FileStructure | null;
   setDocument: (fs: FileStructure) => void;
   getDocumentStrict: () => FileStructure;
+  clear: () => void;
 };
 
 type DocumentShareState = {
@@ -24,6 +26,7 @@ type DocumentShareState = {
   setIsLoading: (value: boolean) => void;
   setModalDisabled: (value: boolean) => void;
   setAll: (value: Partial<DocumentShareState>) => void;
+  clear: () => void;
 };
 
 type UserDocStore = {
@@ -32,11 +35,15 @@ type UserDocStore = {
   setDoc: (value: Text) => void;
   setReadonly: (value: boolean) => void;
   setAll: (params: { value: Text; readonly: boolean }) => void;
+  clear: () => void;
 };
 
 export const useSocketStore = create<SocktState>((set, get) => ({
   status: 'disconnected',
   setStatus: (status: SocketStatus) => set({ status }),
+  clear() {
+    set({ status: 'disconnected' });
+  },
 }));
 
 export const useDocumentStore = create<DocumentState>((set, get) => ({
@@ -51,6 +58,9 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
     return fs;
   },
+  clear() {
+    set({ document: null });
+  },
 }));
 
 export const useDocumentShareStore = create<DocumentShareState>((set, get) => ({
@@ -61,6 +71,9 @@ export const useDocumentShareStore = create<DocumentShareState>((set, get) => ({
   setIsLoading: value => set({ isLoading: value }),
   setModalDisabled: value => set({ isModalDisabled: value }),
   setAll: value => set(value),
+  clear() {
+    set({ isEnabled: false, data: null, isLoading: false, isModalDisabled: false });
+  },
 }));
 
 export const useDocStore = create<UserDocStore>(set => ({
@@ -69,4 +82,7 @@ export const useDocStore = create<UserDocStore>(set => ({
   setDoc: (value: Text) => set({ doc: value }),
   setReadonly: (value: boolean) => set({ readonly: value }),
   setAll: ({ value, readonly }) => set({ doc: value, readonly }),
+  clear() {
+    set({ doc: undefined, readonly: true });
+  },
 }));

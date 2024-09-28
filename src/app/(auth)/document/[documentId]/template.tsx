@@ -83,12 +83,12 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
                 <LayoutTitle />
               </p>
 
-              <BasicTooltip content="Move this file inside vault">
+              {/* <BasicTooltip content="Move this file inside vault">
                 <Icon
                   icon="ic:outline-drive-file-move"
                   className="text-xl active:text-lg transition-all"
                 />
-              </BasicTooltip>
+              </BasicTooltip> */}
 
               <BasicTooltip
                 content={
