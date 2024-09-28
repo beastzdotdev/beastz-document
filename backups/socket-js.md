@@ -1,3 +1,4 @@
+```js
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -88,3 +89,4 @@ server.listen(3001, () => {
   console.log('='.repeat(20));
   console.log('listening on *:3001');
 });
+```

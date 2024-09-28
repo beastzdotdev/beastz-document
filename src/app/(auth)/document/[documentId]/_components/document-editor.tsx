@@ -329,10 +329,6 @@ export const DocumentEditor = (): JSX.Element => {
             return;
           }
 
-          console.log('='.repeat(20));
-          console.log(value);
-          console.log(docStore.initDoc?.toString());
-
           textDiffFromBeforeSave.current = value !== docStore.initDoc?.toString();
 
           const tabTitleStartsWithPrefix = document.title.startsWith(
