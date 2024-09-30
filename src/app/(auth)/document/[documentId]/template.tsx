@@ -133,16 +133,8 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
       </header>
 
       <main className="flex-1 overflow-y-auto h-full bg-muted/40">
-        {initialLoadingIsReady ? children : <BeforeLoadingEditor />}
+        {initialLoadingIsReady ? children : <h1 className="text-center mt-5">Loading ....</h1>}
       </main>
     </div>
   );
 }
-
-const BeforeLoadingEditor = () => {
-  return (
-    <>
-      <h1 className="text-center mt-5">Loading ....</h1>
-    </>
-  );
-};

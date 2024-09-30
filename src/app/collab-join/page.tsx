@@ -1,6 +1,10 @@
 'use client';
 
-export default function CollabJoin(params: any) {
+import { CollabJoinPageProps } from '@/app/collab-join/type';
+
+export default function CollabJoin(params: CollabJoinPageProps) {
+  console.log('='.repeat(20));
+  console.log(params.searchParams?.sharedUniqueHash);
   return (
     <>
       <p>Trying to join</p>

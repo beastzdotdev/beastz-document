@@ -46,6 +46,7 @@ export const constants = {
     tabEditModePrefix: '● ',
     localStorageViewTypeKey: 'default_items_view',
     queryTitleForDocument: 'title',
+    querySharedUniqueHash: 'sharedUniqueHash',
   },
 
   socket: {

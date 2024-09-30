@@ -4,9 +4,9 @@ import { ReactCodeMirrorProps } from '@uiw/react-codemirror';
 
 export type ViewType = 'list' | 'grid';
 export type EditorTheme = ReactCodeMirrorProps['theme'];
-export type PageProps<T> = {
+export type PageProps<T = undefined, E = undefined> = {
   params: T;
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: E;
 };
 
 export type ReactChildren = Readonly<{ children: React.ReactNode }>;
@@ -47,6 +47,5 @@ export type AxiosApiResponse<T> = {
   data?: T;
   error?: ClientApiError;
 };
-
 
 export type SocketStatus = 'connected' | 'disconnected' | 'reconnecting';
