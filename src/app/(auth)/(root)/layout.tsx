@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: ReactChildren): Promise<J
               />
             </Link>
 
-            <p className="text-2xl font-normal text-nowrap tracking-tight flex items-center ml-3">
+            <p className="text-xl font-normal text-nowrap tracking-tight flex items-center ml-3">
               Documents
             </p>
           </div>

@@ -34,25 +34,19 @@ import { useUserStore } from '@/app/(auth)/state';
  * ! if you want to access state current from codemirror 6 then access it view editor.view.state
  */
 export const DocumentEditor = (): JSX.Element => {
+  const [theme, _setTheme] = useState<EditorTheme>('dark');
+
+  const params = useParams<{ documentId: string }>();
+  const editorRef = useRef<{ view: EditorView }>(null);
+
   const textDiffFromBeforeSave = useRef(false);
   const isInitPullDocFull = useRef(true);
+
+  const user = useUserStore();
   const socketStore = useSocketStore();
   const docStore = useDocStore();
   const documentStore = useDocumentStore();
   const documentShareStore = useDocumentShareStore();
-  const params = useParams<{ documentId: string }>();
-  const user = useUserStore();
-
-  const editorRef = useRef<{ view: EditorView }>(null);
-  const [theme, _setTheme] = useState<EditorTheme>('dark');
-
-  const view = useCallback(() => {
-    if (!editorRef.current) {
-      throw new Error('Editor not found');
-    }
-
-    return editorRef.current.view;
-  }, []);
 
   const extensions: Extension[] = useMemo(
     () =>
@@ -65,6 +59,18 @@ export const DocumentEditor = (): JSX.Element => {
   const activeTheme = useMemo(
     () => (themes[theme as keyof typeof themes] || theme) as EditorTheme,
     [theme],
+  );
+
+  const view = useCallback(
+    () => {
+      if (!editorRef.current) {
+        throw new Error('Editor not found');
+      }
+
+      return editorRef.current.view;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editorRef.current?.view],
   );
 
   const selectAll = useCallback(() => {

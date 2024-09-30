@@ -43,6 +43,7 @@ export const CollabButton = () => {
         resolve(value);
       });
 
+      //! Must be after listener
       bus.emit('document:save-before-share');
     });
 
