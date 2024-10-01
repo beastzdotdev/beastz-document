@@ -1,7 +1,9 @@
 'use client';
 
-import { io } from 'socket.io-client';
-export const docEditSocket = io('ws://localhost:4000/document', {
+import { constants } from '@/lib/constants';
+import { ManagerOptions, SocketOptions, io } from 'socket.io-client';
+
+const config: Partial<ManagerOptions & SocketOptions> = {
   withCredentials: true,
   autoConnect: false,
   transports: ['websocket'],
@@ -15,12 +17,26 @@ export const docEditSocket = io('ws://localhost:4000/document', {
       throw new Error('Something went wrong');
     }
 
-    // cb({  });
     cb({ filesStructureId });
   },
 
-  reconnectionAttempts: 3,
-  // reconnectionAttempts: 15,
+  reconnectionAttempts: 20,
   reconnection: true,
   multiplex: true,
+};
+
+export const docEditSocket = io(constants.socket.socketUrl, config);
+export const docEditSocketPublic = io(constants.socket.socketUrl, {
+  ...config,
+  withCredentials: false,
+  auth(cb) {
+    const searchParams = new URLSearchParams(window.location.search);
+    const sharedUniqueHash = searchParams.get('sharedUniqueHash');
+
+    if (typeof sharedUniqueHash !== 'string' || !sharedUniqueHash.length) {
+      throw new Error('Something went wrong');
+    }
+
+    cb({ sharedUniqueHash });
+  },
 });

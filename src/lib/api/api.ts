@@ -112,7 +112,7 @@ async function handleAxiosResponseError(error: unknown) {
         );
 
         if (needsRefresh) {
-          // const data = await handleRefresh();
+          //! This part is very important for parallel calls to refresh token
           if (!refreshingFunc) refreshingFunc = handleRefresh();
 
           const data = await refreshingFunc;

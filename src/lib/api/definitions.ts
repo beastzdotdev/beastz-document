@@ -1,11 +1,17 @@
 'use client';
 
-import { AxiosResponse } from 'axios';
-import { api } from '@/lib/api/api';
+import { AxiosResponse, HttpStatusCode } from 'axios';
+import { api, apiPure } from '@/lib/api/api';
 import { ClientApiError } from '@/lib/api/errors';
-import { FileStructure, FileStructurePublicShare, UserResponseDto } from '@/lib/api/type';
+import {
+  FileStructure,
+  FileStructurePublicShare,
+  PublicFileStructurePublicShare,
+  UserResponseDto,
+} from '@/lib/api/type';
 import { AxiosApiResponse } from '@/lib/types';
 import { FileMimeType } from '@/lib/enums/file-mimte-type.enum';
+import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
 
 export const getText = async (url: string): Promise<AxiosApiResponse<string>> => {
   try {
@@ -158,5 +164,24 @@ export const replaceFileStructureText = async (
     return { data: result.data };
   } catch (e: unknown) {
     return { error: e as ClientApiError };
+  }
+};
+
+export const getFsPublicSharePublic = async (
+  sharedUniqueHash: string,
+): Promise<AxiosApiResponse<{ data: PublicFileStructurePublicShare | null; enabled: boolean }>> => {
+  try {
+    const result: AxiosResponse<{ data: PublicFileStructurePublicShare | null; enabled: boolean }> =
+      await apiPure.get(`/file-structure-public-share/is-enabled-public/${sharedUniqueHash}`);
+
+    return { data: result.data };
+  } catch (e: unknown) {
+    return {
+      error: new ClientApiError(
+        HttpStatusCode.InternalServerError,
+        ExceptionMessageCode.CLIENT_OR_INTERNAL_ERROR,
+        e,
+      ),
+    };
   }
 };

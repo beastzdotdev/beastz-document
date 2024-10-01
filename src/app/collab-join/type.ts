@@ -1,3 +1,3 @@
 import { PageProps } from '@/lib/types';
 
-export type CollabJoinPageProps = PageProps<never, { sharedUniqueHash?: string }>;
+export type CollabJoinPageProps = PageProps<never, { sharedUniqueHash?: string; title?: string }>;

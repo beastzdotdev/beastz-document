@@ -107,7 +107,7 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
               <ConnectionIndicator />
             </div>
 
-            <DocumentMenubar />
+            <DocumentMenubar isServant={false} />
           </div>
         </div>
 

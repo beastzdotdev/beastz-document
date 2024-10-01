@@ -50,6 +50,12 @@ export const constants = {
   },
 
   socket: {
+    socketUrl: process.env.NEXT_PUBLIC_SOCKET_URL as string,
+
+    get documentSocketUrl() {
+      return `${this.socketUrl}/document`;
+    },
+
     events: {
       PushDoc: 'push_doc',
       PullDoc: 'pull_doc',

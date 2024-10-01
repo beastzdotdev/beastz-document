@@ -8,7 +8,7 @@ export default function Custom404() {
 
   if (searchParams.get('message')) {
     return (
-      <main className="grid min-h-full place-items-center bg-primary px-6 py-24 sm:py-32 lg:px-8 bg-black">
+      <main className="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8 bg-black">
         <div className="text-center">
           <p className="text-8xl font-semibold text-indigo-600">Oops</p>
           <p className="mt-6 leading-7 text-xl text-gray-100">{searchParams.get('message')}</p>
@@ -30,7 +30,7 @@ export default function Custom404() {
   }
 
   return (
-    <main className="grid min-h-full place-items-center bg-primary px-6 py-24 sm:py-32 lg:px-8 bg-black">
+    <main className="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8 bg-black">
       <div className="text-center">
         <p className="text-9xl font-semibold text-indigo-600">404</p>
         <h1 className="mt-4 text-base font-bold tracking-tight text-gray-100 sm:text-5xl">

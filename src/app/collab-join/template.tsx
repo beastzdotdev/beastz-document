@@ -5,24 +5,64 @@ import Link from 'next/link';
 import Image from 'next/image';
 import LogoSvg from '@/assets/document.svg';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ReactChildren } from '@/lib/types';
 import { LayoutTitle } from '@/app/(auth)/document/_components/layout-title';
 import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
 import { ConnectionIndicator } from '@/app/(auth)/document/_components/connection-indicator';
 import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { constants } from '@/lib/constants';
-import { Badge } from '@/components/app/badge';
+import { Icon } from '@iconify/react';
+import { Chip } from '@/components/app/chip';
+import { getFsPublicSharePublic } from '@/lib/api/definitions';
+import { cleanURL } from '@/lib/utils';
+import { useCollabStore } from '@/app/collab-join/state';
 
-//TODO resume here
 export default function CollabJoinTemplate({ children }: ReactChildren) {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const collabStore = useCollabStore();
   const sharedUniqueHash = searchParams.get(constants.general.querySharedUniqueHash);
   const title = searchParams.get(constants.general.queryTitleForDocument);
-
   const [initialLoadingIsReady, setInitialLoadingIsReady] = useState(false);
+
+  useEffect(() => {
+    if (typeof sharedUniqueHash !== 'string') {
+      router.push(cleanURL(constants.path.oops, { message: 'Invalid url' }).toString());
+      return;
+    }
+
+    (async () => {
+      const { data, error } = await getFsPublicSharePublic(sharedUniqueHash);
+
+      if (error || !data) {
+        router.push(cleanURL(constants.path.oops, { message: 'Something went wrong' }).toString());
+        return;
+      }
+
+      if (!data.data && !data.enabled) {
+        router.push(
+          cleanURL(constants.path.oops, { message: 'Document sharing not enabled' }).toString(),
+        );
+        return;
+      }
+
+      if (data.data && !data.enabled) {
+        router.push(
+          cleanURL(constants.path.oops, {
+            message: 'Document sharing no longer enabled',
+          }).toString(),
+        );
+        return;
+      }
+
+      collabStore.setData(data.data);
+
+      setInitialLoadingIsReady(true);
+    })();
+  }, [collabStore.data?.isDisabled]);
 
   return (
     <div className="flex min-h-screen w-full flex-col h-full">
@@ -39,7 +79,7 @@ export default function CollabJoinTemplate({ children }: ReactChildren) {
               </p>
 
               <ConnectionIndicator />
-              <Badge text="Guest" />
+              <Chip text="Guest" />
             </div>
 
             <DocumentMenubar isServant />
@@ -56,9 +96,9 @@ export default function CollabJoinTemplate({ children }: ReactChildren) {
           children
         ) : (
           <>
-            <h1 className="mt-5 flex gap-1 justify-center">
-              Loading <p className="font-bold">{title}</p> <Badge text={`#${sharedUniqueHash}`} />
-              ...
+            <h1 className="mt-5 flex gap-1 justify-center items-center">
+              Loading <p className="font-bold">{title}</p> <Chip text={`#${sharedUniqueHash}`} />
+              <Icon icon="eos-icons:three-dots-loading" className="text-4xl" />
             </h1>
           </>
         )}

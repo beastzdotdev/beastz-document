@@ -48,3 +48,12 @@ export class FileStructurePublicShare {
   createdAt: Date;
   joinLink: string;
 }
+
+export class PublicFileStructurePublicShare {
+  id: number;
+  userId: number;
+  fileStructureId: number;
+  isDisabled: boolean;
+  createdAt: Date;
+  fileStructure: FileStructure;
+}
