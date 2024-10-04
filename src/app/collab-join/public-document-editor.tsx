@@ -1,24 +1,10 @@
 'use client';
-// 'use client';
-
-// import { useCollabStore } from '@/app/collab-join/state';
-
-// export const PublicDocumentEditor = (): JSX.Element => {
-//   const x = useCollabStore();
-
-//   return (
-//     <>
-//       <p>Trying to join</p>
-//       <pre>{JSON.stringify(x, null, 2)}</pre>
-//     </>
-//   );
-// };
 
 import * as themes from '@uiw/codemirror-themes-all';
 import { toast } from 'sonner';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import CodeMirror, { ChangeSet, EditorView, Extension, Text } from '@uiw/react-codemirror';
+import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
 
 import { bus } from '@/lib/bus';
 import { Button } from '@/components/ui/button';
@@ -28,19 +14,11 @@ import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
 import { copyToClipboard, sleep } from '@/lib/utils';
 import { docEditSocketPublic } from '@/app/(auth)/document/[documentId]/_components/socket';
-import { getDocumentText, replaceFileStructureText } from '@/lib/api/definitions';
-import {
-  PeerPlugin,
-  peerExtensionCompartment,
-} from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
+import { peerExtensionCompartment } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
 import { constants } from '@/lib/constants';
-import {
-  useDocStore,
-  useDocumentShareStore,
-  useDocumentStore,
-  useSocketStore,
-} from '@/app/(auth)/document/[documentId]/state';
-import { useUserStore } from '@/app/(auth)/state';
+import { useSocketStore } from '@/app/(auth)/document/[documentId]/state';
+import { useCodemirrorStore } from '@/app/collab-join/state';
+import { getDocumentTextPublic } from '@/lib/api/definitions';
 
 /**
  * @important
@@ -50,11 +28,13 @@ import { useUserStore } from '@/app/(auth)/state';
 export const PublicDocumentEditor = (): JSX.Element => {
   const [theme, _setTheme] = useState<EditorTheme>('dark');
   const searchParams = useSearchParams();
-  const sharedUniqueHash = searchParams.get(constants.general.querySharedUniqueHash);
+  const sharedUniqueHash = searchParams.get(constants.general.querySharedUniqueHash) as string;
 
   const params = useParams<{ documentId: string }>();
   const editorRef = useRef<{ view: EditorView }>(null);
   const isInitPullDocFull = useRef(true);
+
+  const codemirrorStore = useCodemirrorStore();
 
   const socketStore = useSocketStore();
 
@@ -156,32 +136,38 @@ export const PublicDocumentEditor = (): JSX.Element => {
 
       // User defined events
       docEditSocketPublic.on(constants.socket.events.PullDocFull, async () => {
-        // const { data: text, error } = await getDocumentText(parseInt(params.documentId));
-        // if (error || text === undefined) {
-        //   toast.error('Sorry, could not load document');
-        //   return;
-        // }
-        // if (isInitPullDocFull.current) {
-        //   docStore.setInitDoc(Text.of([text])); // this only works on init
-        // } else {
-        //   // replace all with new text
-        //   view().dispatch({
-        //     changes: {
-        //       from: 0,
-        //       to: view().state.doc.length,
-        //       insert: text,
-        //     },
-        //   });
-        // }
-        // // disable initial
-        // isInitPullDocFull.current = false;
-        // // loading state for modal button and also readonly state for editor will be resolved in socket event response
-        // docStore.setReadonly(false);
-        // documentShareStore.setIsLoading(false);
+        const { data: text, error } = await getDocumentTextPublic(sharedUniqueHash);
+
+        if (error || text === undefined) {
+          toast.error('Sorry, could not load document');
+          return;
+        }
+
+        if (isInitPullDocFull.current) {
+          codemirrorStore.setInitDoc(Text.of([text])); // this only works on init
+        } else {
+          // replace all with new text
+          view().dispatch({
+            changes: {
+              from: 0,
+              to: view().state.doc.length,
+              insert: text,
+            },
+          });
+        }
+
+        // disable initial
+        isInitPullDocFull.current = false;
+
+        // loading state for modal button and also readonly state for editor will be resolved in socket event response
+        codemirrorStore.setReadonly(false);
       });
 
+      //TODO check out backend connection on socket middleware and everything
+      //TODO finish up here
+
       docEditSocketPublic.on(constants.socket.events.PullDoc, (data: unknown) => {
-        //! Here we might need some kind of locker so that while pulldocfull is running we can't dispatch anything
+        //TODO Here we might need some kind of locker so that while pulldocfull is running we can't dispatch anything
         // view().dispatch({
         //   scrollIntoView: false,
         //   changes: ChangeSet.fromJSON(data),
@@ -278,8 +264,8 @@ export const PublicDocumentEditor = (): JSX.Element => {
 
       <CodeMirror
         ref={editorRef}
-        value=""
-        // value={docStore.initDoc?.toString()}
+        // value=""
+        value={codemirrorStore.initDoc?.toString()}
         width="1050px"
         className="w-fit mx-auto h-full cm-custom"
         autoFocus
@@ -298,13 +284,13 @@ export const PublicDocumentEditor = (): JSX.Element => {
           }
         }}
         spellCheck
-        // editable={!docStore.readonly}
-        // readOnly={docStore.readonly}
+        editable={!codemirrorStore.readonly}
+        readOnly={codemirrorStore.readonly}
         basicSetup={{
           ...docConfigBundle.basicSetupOption,
           lineNumbers: false,
-          // highlightActiveLine: !docStore.readonly,
-          // highlightActiveLineGutter: !docStore.readonly,
+          highlightActiveLine: !codemirrorStore.readonly,
+          highlightActiveLineGutter: !codemirrorStore.readonly,
         }}
         extensions={extensions}
         theme={activeTheme}

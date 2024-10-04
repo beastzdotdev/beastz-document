@@ -25,8 +25,11 @@ const config: Partial<ManagerOptions & SocketOptions> = {
   multiplex: true,
 };
 
-export const docEditSocket = io(constants.socket.socketUrl, config);
-export const docEditSocketPublic = io(constants.socket.socketUrl, {
+console.log('='.repeat(20));
+console.log(constants.socket.documentSocketUrl);
+
+export const docEditSocket = io(constants.socket.documentSocketUrl, config);
+export const docEditSocketPublic = io(constants.socket.documentSocketUrl, {
   ...config,
   withCredentials: false,
   auth(cb) {

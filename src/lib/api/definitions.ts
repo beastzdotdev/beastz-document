@@ -185,3 +185,26 @@ export const getFsPublicSharePublic = async (
     };
   }
 };
+
+export const getDocumentTextPublic = async (
+  sharedUniqueHash: string,
+): Promise<AxiosApiResponse<string>> => {
+  try {
+    const textResponse: AxiosResponse<string> = await apiPure.get(
+      `/file-structure/document-text-public/${sharedUniqueHash}`,
+      {
+        responseType: 'text',
+      },
+    );
+
+    return { data: textResponse.data };
+  } catch (e: unknown) {
+    return {
+      error: new ClientApiError(
+        HttpStatusCode.InternalServerError,
+        ExceptionMessageCode.CLIENT_OR_INTERNAL_ERROR,
+        e,
+      ),
+    };
+  }
+};

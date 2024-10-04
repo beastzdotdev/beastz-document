@@ -44,6 +44,7 @@ export const useSocketStore = create<SocktState>((set, get) => ({
   },
 }));
 
+// This state is for file structure
 export const useDocumentStore = create<DocumentState>((set, get) => ({
   document: null,
   setDocument: (fs: FileStructure) => set({ document: fs }),
@@ -68,6 +69,7 @@ export const useDocumentShareStore = create<DocumentShareState>((set, get) => ({
   clear: () => set({ isEnabled: false, data: null, isLoading: false }),
 }));
 
+// This state is for codemirror doc (I know bad naming)
 export const useDocStore = create<UserDocStore>(set => ({
   initDoc: undefined,
   readonly: true,
