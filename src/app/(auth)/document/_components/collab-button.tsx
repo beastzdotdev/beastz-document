@@ -146,7 +146,7 @@ export const CollabButton = () => {
                 {documentShareStore.data && !documentShareStore.data.isDisabled ? (
                   <>
                     <Button disabled variant="outline">
-                      Regen (soon)
+                      Regenerate (soon)
                     </Button>
                   </>
                 ) : null}

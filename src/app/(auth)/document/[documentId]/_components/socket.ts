@@ -25,9 +25,6 @@ const config: Partial<ManagerOptions & SocketOptions> = {
   multiplex: true,
 };
 
-console.log('='.repeat(20));
-console.log(constants.socket.documentSocketUrl);
-
 export const docEditSocket = io(constants.socket.documentSocketUrl, config);
 export const docEditSocketPublic = io(constants.socket.documentSocketUrl, {
   ...config,
@@ -35,11 +32,12 @@ export const docEditSocketPublic = io(constants.socket.documentSocketUrl, {
   auth(cb) {
     const searchParams = new URLSearchParams(window.location.search);
     const sharedUniqueHash = searchParams.get('sharedUniqueHash');
+    const filesStructureId = searchParams.get('fsId');
 
     if (typeof sharedUniqueHash !== 'string' || !sharedUniqueHash.length) {
       throw new Error('Something went wrong');
     }
 
-    cb({ sharedUniqueHash });
+    cb({ sharedUniqueHash, filesStructureId });
   },
 });

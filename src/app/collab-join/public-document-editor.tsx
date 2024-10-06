@@ -4,7 +4,7 @@ import * as themes from '@uiw/codemirror-themes-all';
 import { toast } from 'sonner';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
+import CodeMirror, { ChangeSet, EditorView, Extension, Text } from '@uiw/react-codemirror';
 
 import { bus } from '@/lib/bus';
 import { Button } from '@/components/ui/button';
@@ -101,6 +101,13 @@ export const PublicDocumentEditor = (): JSX.Element => {
 
   useEffect(
     () => {
+      docEditSocketPublic.on('connect_error', (err: SocketError) => {
+        toast.error(err.message);
+        console.dir('connect_error');
+        console.dir(err);
+      });
+      //========================================================
+
       window.addEventListener('keydown', handleKeyDownGlobally);
 
       if (!docEditSocketPublic.connected) {
@@ -168,10 +175,11 @@ export const PublicDocumentEditor = (): JSX.Element => {
 
       docEditSocketPublic.on(constants.socket.events.PullDoc, (data: unknown) => {
         //TODO Here we might need some kind of locker so that while pulldocfull is running we can't dispatch anything
-        // view().dispatch({
-        //   scrollIntoView: false,
-        //   changes: ChangeSet.fromJSON(data),
-        // });
+
+        view().dispatch({
+          scrollIntoView: false,
+          changes: ChangeSet.fromJSON(data),
+        });
       });
 
       docEditSocketPublic.on(constants.socket.events.RetryConnection, async () => {
