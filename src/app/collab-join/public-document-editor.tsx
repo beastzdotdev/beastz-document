@@ -2,7 +2,7 @@
 
 import * as themes from '@uiw/codemirror-themes-all';
 import { toast } from 'sonner';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CodeMirror, { ChangeSet, EditorView, Extension, Text } from '@uiw/react-codemirror';
 
@@ -12,13 +12,14 @@ import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { copyToClipboard, sleep } from '@/lib/utils';
+import { cleanURL, copyToClipboard, sleep } from '@/lib/utils';
 import { docEditSocketPublic } from '@/app/(auth)/document/[documentId]/_components/socket';
 import { peerExtensionCompartment } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
 import { constants } from '@/lib/constants';
 import { useSocketStore } from '@/app/(auth)/document/[documentId]/state';
 import { useCodemirrorStore } from '@/app/collab-join/state';
 import { getDocumentTextPublic } from '@/lib/api/definitions';
+import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
 
 /**
  * @important
@@ -27,6 +28,7 @@ import { getDocumentTextPublic } from '@/lib/api/definitions';
  */
 export const PublicDocumentEditor = (): JSX.Element => {
   const [theme, _setTheme] = useState<EditorTheme>('dark');
+  const router = useRouter();
   const searchParams = useSearchParams();
   const sharedUniqueHash = searchParams.get(constants.general.querySharedUniqueHash) as string;
 
@@ -35,7 +37,6 @@ export const PublicDocumentEditor = (): JSX.Element => {
   const isInitPullDocFull = useRef(true);
 
   const codemirrorStore = useCodemirrorStore();
-
   const socketStore = useSocketStore();
 
   const extensions: Extension[] = useMemo(
@@ -102,6 +103,15 @@ export const PublicDocumentEditor = (): JSX.Element => {
   useEffect(
     () => {
       docEditSocketPublic.on('connect_error', (err: SocketError) => {
+        if (err?.message === ExceptionMessageCode.DOCUMENT_DISABLED) {
+          router.push(
+            cleanURL(constants.path.oops, {
+              message: 'Document sharing no longer enabled',
+            }).toString(),
+          );
+          return;
+        }
+
         toast.error(err.message);
         console.dir('connect_error');
         console.dir(err);
@@ -170,9 +180,6 @@ export const PublicDocumentEditor = (): JSX.Element => {
         codemirrorStore.setReadonly(false);
       });
 
-      //TODO check out backend connection on socket middleware and everything
-      //TODO finish up here
-
       docEditSocketPublic.on(constants.socket.events.PullDoc, (data: unknown) => {
         //TODO Here we might need some kind of locker so that while pulldocfull is running we can't dispatch anything
 
@@ -214,8 +221,6 @@ export const PublicDocumentEditor = (): JSX.Element => {
   return (
     <>
       <>
-        {/* <p>readonly: {!!docStore.readonly ? 'yes' : 'no'}</p> */}
-        {/* <p>doc share: {JSON.stringify(documentShareStore)} </p> */}
         <div className="flex">
           <p>sock status: {socketStore.status} </p>
           {socketStore.status === 'connected' ? (

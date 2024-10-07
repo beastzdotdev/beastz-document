@@ -18,7 +18,7 @@ import { ExternalLink } from '@/components/app/external-link';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
 import { LayoutTitle } from '@/app/(auth)/document/_components/layout-title';
 import { CollabButton } from '@/app/(auth)/document/_components/collab-button';
-import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
+// import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
 import { ConnectionIndicator } from '@/app/(auth)/document/_components/connection-indicator';
 import { getFileStructureById, getFileStructurePublicShareEnabled } from '@/lib/api/definitions';
 import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
@@ -119,9 +119,9 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
           {initialLoadingIsReady ? (
             <>
               {/* Joined people must only exist when share is enabled */}
-              {documentShareStore.isEnabled && (
+              {/* {documentShareStore.isEnabled && (
                 <JoinedPeople people={[{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }]} />
-              )}
+              )} */}
 
               {/* Collab button must always exits */}
               <CollabButton />
