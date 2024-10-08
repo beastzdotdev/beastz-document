@@ -208,3 +208,27 @@ export const getDocumentTextPublic = async (
     };
   }
 };
+export const getCollabActiveParticipantsPublic = async (params: {
+  fsId: number;
+  isServant: boolean;
+}): Promise<AxiosApiResponse<string[]>> => {
+  try {
+    const { fsId, isServant } = params;
+    const numberResponse: AxiosResponse<string[]> = await apiPure.get(
+      `/file-structure-public-share/collab-active-participants-public/${fsId}`,
+      {
+        params: { isServant },
+      },
+    );
+
+    return { data: numberResponse.data };
+  } catch (e: unknown) {
+    return {
+      error: new ClientApiError(
+        HttpStatusCode.InternalServerError,
+        ExceptionMessageCode.CLIENT_OR_INTERNAL_ERROR,
+        e,
+      ),
+    };
+  }
+};

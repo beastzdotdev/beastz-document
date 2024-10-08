@@ -23,6 +23,7 @@ import { ConnectionIndicator } from '@/app/(auth)/document/_components/connectio
 import { getFileStructureById, getFileStructurePublicShareEnabled } from '@/lib/api/definitions';
 import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
 import { useDocumentShareStore, useDocumentStore } from '@/app/(auth)/document/[documentId]/state';
+import { JoinedPeopleAmount } from '@/app/(auth)/document/_components/joined-people-amount';
 
 export default function DocumentTemplate({ children }: ReactChildren): JSX.Element {
   const router = useRouter();
@@ -122,6 +123,8 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
               {/* {documentShareStore.isEnabled && (
                 <JoinedPeople people={[{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }]} />
               )} */}
+              {/* TODO replace with above */}
+              {documentShareStore.isEnabled && <JoinedPeopleAmount isServant={false} />}
 
               {/* Collab button must always exits */}
               <CollabButton />

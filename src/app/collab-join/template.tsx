@@ -17,6 +17,7 @@ import { Chip } from '@/components/app/chip';
 import { getFsPublicSharePublic } from '@/lib/api/definitions';
 import { cleanURL } from '@/lib/utils';
 import { useCollabStore } from '@/app/collab-join/state';
+import { JoinedPeopleAmount } from '@/app/(auth)/document/_components/joined-people-amount';
 
 export default function CollabJoinTemplate({ children }: ReactChildren) {
   const searchParams = useSearchParams();
@@ -90,6 +91,10 @@ export default function CollabJoinTemplate({ children }: ReactChildren) {
         {/* <div className="flex justify-end w-full items-center md:ml-auto gap-3 flex-1">
           <JoinedPeople people={[{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }]} />
         </div> */}
+
+        <div className="flex justify-end w-full items-center md:ml-auto gap-3 flex-1">
+          <JoinedPeopleAmount isServant={true} />
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto h-full bg-muted/40">
