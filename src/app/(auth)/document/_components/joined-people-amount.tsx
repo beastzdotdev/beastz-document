@@ -29,8 +29,6 @@ export const JoinedPeopleAmount = (props: { isServant: boolean }) => {
 
       fsId = filesStructureId;
     } else {
-      console.log(window.location.pathname.split('/'));
-
       const filesStructureId = parseInt(window.location.pathname.split('/').pop() ?? '');
 
       if (typeof filesStructureId !== 'number') {

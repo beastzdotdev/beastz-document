@@ -171,12 +171,10 @@ export const DocumentEditor = (): JSX.Element => {
       }
 
       docEditSocket.on('connect', async () => {
-        console.log('CONNECTEd');
         useSocketStore.getState().setStatus('connected');
       });
 
       docEditSocket.on('disconnect', () => {
-        console.log('CONNECTEd');
         useSocketStore.getState().setStatus('disconnected');
       });
 

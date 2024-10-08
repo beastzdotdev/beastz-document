@@ -125,12 +125,10 @@ export const PublicDocumentEditor = (): JSX.Element => {
       }
 
       docEditSocketPublic.on('connect', async () => {
-        console.log('CONNECTEd');
         useSocketStore.getState().setStatus('connected');
       });
 
       docEditSocketPublic.on('disconnect', () => {
-        console.log('CONNECTEd');
         useSocketStore.getState().setStatus('disconnected');
       });
 
