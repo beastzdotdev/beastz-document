@@ -208,17 +208,12 @@ export const getDocumentTextPublic = async (
     };
   }
 };
-export const getCollabActiveParticipantsPublic = async (params: {
-  fsId: number;
-  isServant: boolean;
-}): Promise<AxiosApiResponse<string[]>> => {
+export const getCollabActiveParticipantsPublic = async (
+  fsId: number,
+): Promise<AxiosApiResponse<string[]>> => {
   try {
-    const { fsId, isServant } = params;
     const numberResponse: AxiosResponse<string[]> = await apiPure.get(
       `/file-structure-public-share/collab-active-participants-public/${fsId}`,
-      {
-        params: { isServant },
-      },
     );
 
     return { data: numberResponse.data };

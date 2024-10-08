@@ -4,7 +4,7 @@ import * as themes from '@uiw/codemirror-themes-all';
 import { toast } from 'sonner';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import CodeMirror, { EditorView, Extension, Text } from '@uiw/react-codemirror';
+import CodeMirror, { ChangeSet, EditorView, Extension, Text } from '@uiw/react-codemirror';
 
 import { bus } from '@/lib/bus';
 import { Button } from '@/components/ui/button';
@@ -14,19 +14,19 @@ import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
 import { copyToClipboard, sleep } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
-import { getDocumentText, replaceFileStructureText } from '@/lib/api/definitions';
 import {
-  PeerPlugin,
-  peerExtensionCompartment,
-} from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
+  getCollabActiveParticipantsPublic,
+  getDocumentText,
+  replaceFileStructureText,
+} from '@/lib/api/definitions';
 import { constants } from '@/lib/constants';
 import {
   useDocStore,
   useDocumentShareStore,
   useDocumentStore,
+  useJoinedPeopleStore,
   useSocketStore,
 } from '@/app/(auth)/document/[documentId]/state';
-import { useUserStore } from '@/app/(auth)/state';
 
 /**
  * @important
@@ -42,17 +42,14 @@ export const DocumentEditor = (): JSX.Element => {
   const textDiffFromBeforeSave = useRef(false);
   const isInitPullDocFull = useRef(true);
 
-  const user = useUserStore();
   const socketStore = useSocketStore();
   const docStore = useDocStore();
   const documentStore = useDocumentStore();
   const documentShareStore = useDocumentShareStore();
+  const joinedPeopleStore = useJoinedPeopleStore();
 
   const extensions: Extension[] = useMemo(
-    () =>
-      docConfigBundle
-        .getAllExtension()
-        .concat(markdown({ codeLanguages: languages }), peerExtensionCompartment.of([])),
+    () => docConfigBundle.getAllExtension().concat(markdown({ codeLanguages: languages })),
     [],
   );
 
@@ -138,22 +135,6 @@ export const DocumentEditor = (): JSX.Element => {
     bus.on('editor:copy', copySelected);
   }, [copySelected, selectAll]);
 
-  useEffect(() => {
-    const view = editorRef?.current?.view;
-
-    if (!view) {
-      return;
-    }
-
-    const plugin = documentShareStore.isEnabled
-      ? PeerPlugin(docEditSocket, documentStore.getDocumentStrict().sharedUniqueHash)
-      : [];
-
-    view.dispatch({
-      effects: peerExtensionCompartment.reconfigure(plugin),
-    });
-  }, [documentShareStore.isEnabled, user, editorRef.current?.view, documentStore]);
-
   useEffect(
     () => {
       window.addEventListener('keydown', handleKeyDownGlobally);
@@ -222,12 +203,44 @@ export const DocumentEditor = (): JSX.Element => {
         // loading state for modal button and also readonly state for editor will be resolved in socket event response
         docStore.setReadonly(false);
         documentShareStore.setIsLoading(false);
+
+        const fsId = parseInt(window.location.pathname.split('/').pop() ?? '');
+        if (typeof fsId !== 'number') {
+          throw new Error('Something went wrong');
+        }
+
+        const { data, error: err } = await getCollabActiveParticipantsPublic(fsId);
+
+        if (err || !data) {
+          return;
+        }
+
+        // here socket id is known
+        joinedPeopleStore.setPeople(data.filter(e => e !== docEditSocket.id));
       });
 
       docEditSocket.on(constants.socket.events.RetryConnection, async () => {
         docEditSocket.disconnect();
         await sleep(1000);
         docEditSocket.connect();
+      });
+
+      docEditSocket.on(constants.socket.events.PullDoc, (data: unknown) => {
+        view().dispatch({
+          scrollIntoView: false,
+          changes: ChangeSet.fromJSON(data),
+        });
+      });
+
+      docEditSocket.on(constants.socket.events.UserJoined, (data: { socketId: string }) => {
+        const newData = joinedPeopleStore.people
+          .concat(data.socketId)
+          .filter(e => e !== docEditSocket.id);
+        joinedPeopleStore.setPeople(newData);
+      });
+
+      docEditSocket.on(constants.socket.events.UserLeft, (data: { socketId: string }) => {
+        joinedPeopleStore.setPeople(joinedPeopleStore.people.filter(e => e !== data.socketId));
       });
 
       return () => {
@@ -241,8 +254,9 @@ export const DocumentEditor = (): JSX.Element => {
         docEditSocket.io.off('reconnect_attempt');
         docEditSocket.io.off('reconnect_failed');
 
-        docEditSocket.off(constants.socket.events.PullDocFull);
-        docEditSocket.off(constants.socket.events.RetryConnection);
+        for (const event of Object.values(constants.socket.events)) {
+          docEditSocket.off(event);
+        }
 
         docEditSocket.disconnect();
 
@@ -351,6 +365,20 @@ export const DocumentEditor = (): JSX.Element => {
         className="w-fit mx-auto h-full cm-custom"
         autoFocus
         spellCheck
+        onUpdate={update => {
+          if (update.docChanged && update.selectionSet) {
+            if (!update.changes.length) {
+              return;
+            }
+
+            const data = {
+              changes: update.changes.toJSON(),
+              sharedUniqueHash: documentStore.getDocumentStrict().sharedUniqueHash,
+            };
+
+            docEditSocket.emit(constants.socket.events.PushDoc, data);
+          }
+        }}
         editable={!docStore.readonly}
         readOnly={docStore.readonly}
         basicSetup={{

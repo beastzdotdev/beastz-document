@@ -36,6 +36,12 @@ type UserDocStore = {
   clear: () => void;
 };
 
+type JoinedPeopleState = {
+  people: string[];
+  setPeople: (people: string[]) => void;
+  clear: () => void;
+};
+
 export const useSocketStore = create<SocktState>((set, get) => ({
   status: 'disconnected',
   setStatus: (status: SocketStatus) => set({ status }),
@@ -77,4 +83,10 @@ export const useDocStore = create<UserDocStore>(set => ({
   setReadonly: (value: boolean) => set({ readonly: value }),
   setAll: ({ value, readonly }) => set({ initDoc: value, readonly }),
   clear: () => set({ initDoc: undefined, readonly: true }),
+}));
+
+export const useJoinedPeopleStore = create<JoinedPeopleState>(set => ({
+  people: [],
+  setPeople: (people: string[]) => set({ people }),
+  clear: () => set({ people: [] }),
 }));

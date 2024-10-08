@@ -14,11 +14,10 @@ import { EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
 import { cleanURL, copyToClipboard, sleep } from '@/lib/utils';
 import { docEditSocketPublic } from '@/app/(auth)/document/[documentId]/_components/socket';
-import { peerExtensionCompartment } from '@/app/(auth)/document/[documentId]/_components/peer-extensions';
 import { constants } from '@/lib/constants';
-import { useSocketStore } from '@/app/(auth)/document/[documentId]/state';
+import { useJoinedPeopleStore, useSocketStore } from '@/app/(auth)/document/[documentId]/state';
 import { useCodemirrorStore } from '@/app/collab-join/state';
-import { getDocumentTextPublic } from '@/lib/api/definitions';
+import { getCollabActiveParticipantsPublic, getDocumentTextPublic } from '@/lib/api/definitions';
 import { ExceptionMessageCode } from '@/lib/enums/exception-message-code.enum';
 
 /**
@@ -32,18 +31,15 @@ export const PublicDocumentEditor = (): JSX.Element => {
   const searchParams = useSearchParams();
   const sharedUniqueHash = searchParams.get(constants.general.querySharedUniqueHash) as string;
 
-  const params = useParams<{ documentId: string }>();
   const editorRef = useRef<{ view: EditorView }>(null);
   const isInitPullDocFull = useRef(true);
 
+  const joinedPeopleStore = useJoinedPeopleStore();
   const codemirrorStore = useCodemirrorStore();
   const socketStore = useSocketStore();
 
   const extensions: Extension[] = useMemo(
-    () =>
-      docConfigBundle
-        .getAllExtension()
-        .concat(markdown({ codeLanguages: languages }), peerExtensionCompartment.of([])),
+    () => docConfigBundle.getAllExtension().concat(markdown({ codeLanguages: languages })),
     [],
   );
 
@@ -176,6 +172,21 @@ export const PublicDocumentEditor = (): JSX.Element => {
 
         // loading state for modal button and also readonly state for editor will be resolved in socket event response
         codemirrorStore.setReadonly(false);
+
+        const fsId = parseInt(searchParams.get('fsId') ?? '');
+
+        if (typeof fsId !== 'number') {
+          throw new Error('Something went wrong');
+        }
+
+        const { data, error: err } = await getCollabActiveParticipantsPublic(fsId);
+
+        if (err || !data) {
+          return;
+        }
+
+        // here socket id is known
+        joinedPeopleStore.setPeople(data.filter(e => e !== docEditSocketPublic.id));
       });
 
       docEditSocketPublic.on(constants.socket.events.PullDoc, (data: unknown) => {
@@ -193,6 +204,17 @@ export const PublicDocumentEditor = (): JSX.Element => {
         docEditSocketPublic.connect();
       });
 
+      docEditSocketPublic.on(constants.socket.events.UserJoined, (data: { socketId: string }) => {
+        const newData = joinedPeopleStore.people
+          .concat(data.socketId)
+          .filter(e => e !== docEditSocketPublic.id);
+        joinedPeopleStore.setPeople(newData);
+      });
+
+      docEditSocketPublic.on(constants.socket.events.UserLeft, (data: { socketId: string }) => {
+        joinedPeopleStore.setPeople(joinedPeopleStore.people.filter(e => e !== data.socketId));
+      });
+
       return () => {
         window.removeEventListener('keydown', handleKeyDownGlobally);
 
@@ -204,8 +226,9 @@ export const PublicDocumentEditor = (): JSX.Element => {
         docEditSocketPublic.io.off('reconnect_attempt');
         docEditSocketPublic.io.off('reconnect_failed');
 
-        docEditSocketPublic.off(constants.socket.events.PullDocFull);
-        docEditSocketPublic.off(constants.socket.events.RetryConnection);
+        for (const event of Object.values(constants.socket.events)) {
+          docEditSocketPublic.off(event);
+        }
 
         docEditSocketPublic.disconnect();
 
