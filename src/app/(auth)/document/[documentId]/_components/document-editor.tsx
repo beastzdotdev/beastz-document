@@ -4,10 +4,9 @@ import * as themes from '@uiw/codemirror-themes-all';
 import { toast } from 'sonner';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import CodeMirror, { ChangeSet, EditorView, Extension, Text } from '@uiw/react-codemirror';
+import CodeMirror, { ChangeSet, EditorView, Extension, Rect, Text } from '@uiw/react-codemirror';
 
 import { bus } from '@/lib/bus';
-import { Button } from '@/components/ui/button';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EditorTheme, SocketError } from '@/lib/types';
@@ -27,6 +26,22 @@ import {
   useJoinedPeopleStore,
   useSocketStore,
 } from '@/app/(auth)/document/[documentId]/state';
+import { Button } from '@/components/ui/button';
+
+type CursorData = {
+  color: string;
+  text: string;
+  id: string;
+  pos: number;
+};
+
+const arrOfCursors: CursorData[] = [
+  { color: '#009c2f', text: 'Gela', id: crypto.randomUUID(), pos: 12 },
+  { color: '#009c2f', text: 'Gelaasdasdasdasd', id: crypto.randomUUID(), pos: 78 },
+];
+
+const DEFAULT_PADDING = 30; // can be modified
+const IMPORTANT_SIDE = -1;
 
 /**
  * @important
@@ -129,6 +144,61 @@ export const DocumentEditor = (): JSX.Element => {
       await handleSaveBeforeShare();
     }
   };
+
+  const calculateCords = useCallback(
+    (props: { characterPosition: number; editorDom: Element; contentDom: Element }) => {
+      const { characterPosition, editorDom, contentDom } = props;
+
+      // Get coordinates for left position calculation, this gives positions for
+      const cords = view().coordsAtPos(characterPosition, IMPORTANT_SIDE) as Rect;
+
+      const defaultLineHeight = Math.round(view().defaultLineHeight as number);
+
+      // How much is root editor dom from left and top (that is why we substract from cords.left and cords.top)
+      // ContentDom is necessary because hovering vertically is enabled and dom may get out of bounds
+      const currentLineAbsPosFromEditorLeft = cords.left - editorDom.getBoundingClientRect().left;
+      const currentLineAbsPosFromEditorTop =
+        cords.top - contentDom.getBoundingClientRect().top + DEFAULT_PADDING;
+
+      return {
+        left: currentLineAbsPosFromEditorLeft,
+        top: currentLineAbsPosFromEditorTop,
+        lineHeight: defaultLineHeight,
+      };
+    },
+    [view],
+  );
+
+  const renderCursor = useCallback(
+    (props: { left: number; top: number; lineHeight: number } & CursorData) => {
+      const { left, lineHeight, color, text, id, top } = props;
+
+      const span = document.createElement('span');
+      span.className = 'cm-x-cursor-line';
+      span.style.left = `${left}px`;
+      span.style.top = `${top}px`;
+      span.style.borderLeft = `1px solid ${color}`;
+      span.style.borderRight = `1px solid ${color}`;
+      span.style.height = lineHeight + 'px';
+      span.id = id;
+
+      const dot = document.createElement('div');
+      dot.className = 'cm-x-cursor-head';
+      dot.style.backgroundColor = color;
+      span.appendChild(dot);
+
+      const nameContainer = document.createElement('div');
+      nameContainer.className = 'cm-x-cursor-name-container';
+      nameContainer.style.backgroundColor = color;
+      nameContainer.textContent = text;
+      span.appendChild(nameContainer);
+
+      //! Must be scroller in order for positions to work accordingly if for example you use in
+      //! cm-editor instead of cm-scroller then cursor div will not respect scrolling and stay in one place fixed on screen
+      document.querySelector('.cm-scroller')?.appendChild(span);
+    },
+    [],
+  );
 
   useEffect(() => {
     bus.on('editor:select-all', selectAll);
@@ -272,7 +342,24 @@ export const DocumentEditor = (): JSX.Element => {
 
   return (
     <>
-      <>
+      <Button
+        className="fixed top-10 right-5"
+        onClick={() => {
+          const cursor = arrOfCursors[0];
+          const { left, lineHeight, top } = calculateCords({
+            characterPosition: 5,
+            editorDom: document.querySelector('.cm-editor')!,
+            contentDom: document.querySelector('.cm-content')!,
+          });
+
+          document.getElementById(cursor.id)?.remove();
+          renderCursor({ lineHeight, left, top, ...cursor });
+        }}
+      >
+        test cursor pos 5
+      </Button>
+
+      {/* <>
         <p>readonly: {!!docStore.readonly ? 'yes' : 'no'}</p>
         <p>doc share: {JSON.stringify(documentShareStore)} </p>
         <div className="flex">
@@ -284,6 +371,46 @@ export const DocumentEditor = (): JSX.Element => {
           )}
         </div>
 
+        <Button
+          onClick={() => {
+            const cords = editorRef.current?.view.coordsAtPos(10, IMPORTANT_SIDE) as Rect;
+
+            console.log('='.repeat(20));
+            console.log(cords);
+          }}
+        >
+          pos
+        </Button>
+        <Button
+          onClick={() => {
+            const cursor = arrOfCursors[0];
+            const { left, lineHeight, top } = calculateCords({
+              characterPosition: 10,
+              editorDom: document.querySelector('.cm-editor')!,
+              contentDom: document.querySelector('.cm-content')!,
+            });
+
+            document.getElementById(cursor.id)?.remove();
+            renderCursor({ lineHeight, left, top, ...cursor });
+          }}
+        >
+          test cursor pos 10
+        </Button>
+        <Button
+          onClick={() => {
+            const cursor = arrOfCursors[0];
+            const { left, lineHeight, top } = calculateCords({
+              characterPosition: 50,
+              editorDom: document.querySelector('.cm-editor')!,
+              contentDom: document.querySelector('.cm-content')!,
+            });
+
+            document.getElementById(cursor.id)?.remove();
+            renderCursor({ lineHeight, left, top, ...cursor });
+          }}
+        >
+          test cursor pos 50
+        </Button>
         <Button
           onClick={async () => {
             const result = await getDocumentText(parseInt(params.documentId));
@@ -336,14 +463,29 @@ export const DocumentEditor = (): JSX.Element => {
         >
           test (open:global-model)
         </Button>
-      </>
+      </> */}
 
       <CodeMirror
         ref={editorRef}
         value={docStore.initDoc?.toString()}
-        onChange={value => {
+        onChange={(value, update) => {
           if (documentShareStore.isEnabled) {
             docStore.setInitDoc(Text.of([value]));
+
+            //TODO here this is too much code
+            if (update.docChanged && update.selectionSet) {
+              if (!update.changes.length) {
+                return;
+              }
+
+              const data = {
+                changes: update.changes.toJSON(),
+                sharedUniqueHash: documentStore.getDocumentStrict().sharedUniqueHash,
+              };
+
+              docEditSocket.emit(constants.socket.events.PushDoc, data);
+            }
+
             return;
           }
 
@@ -365,20 +507,6 @@ export const DocumentEditor = (): JSX.Element => {
         className="w-fit mx-auto h-full cm-custom"
         autoFocus
         spellCheck
-        onUpdate={update => {
-          if (update.docChanged && update.selectionSet) {
-            if (!update.changes.length) {
-              return;
-            }
-
-            const data = {
-              changes: update.changes.toJSON(),
-              sharedUniqueHash: documentStore.getDocumentStrict().sharedUniqueHash,
-            };
-
-            docEditSocket.emit(constants.socket.events.PushDoc, data);
-          }
-        }}
         editable={!docStore.readonly}
         readOnly={docStore.readonly}
         basicSetup={{
