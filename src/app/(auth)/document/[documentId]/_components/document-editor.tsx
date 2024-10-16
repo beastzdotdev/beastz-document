@@ -29,9 +29,21 @@ import {
 } from '@/app/(auth)/document/[documentId]/state';
 import { openSearchPanel } from '@codemirror/search';
 import { useRouter } from 'next/navigation';
+import { Card } from '@/components/ui/card';
+import { create } from 'zustand';
+import { BasicTooltip } from '@/components/app/basic-tooltip';
+import { Badge } from '@/components/ui/badge';
 
 const DEFAULT_PADDING = 30; // can be modified
 const IMPORTANT_SIDE = -1;
+
+const tempSolution = create<{
+  textDiffFromBeforeSave: boolean;
+  setTextDiffFromBeforeSave: (value: boolean) => void;
+}>((set, get) => ({
+  textDiffFromBeforeSave: false,
+  setTextDiffFromBeforeSave: (value: boolean) => set({ textDiffFromBeforeSave: value }),
+}));
 
 /**
  * @important
@@ -56,6 +68,8 @@ export const DocumentEditor = (): JSX.Element => {
   const documentStore = useDocumentStore();
   const documentShareStore = useDocumentShareStore();
   const joinedPeopleStore = useJoinedPeopleStore();
+
+  const temp = tempSolution();
 
   const extensions: Extension[] = useMemo(
     () => docConfigBundle.getAllExtension().concat(markdown({ codeLanguages: languages })),
@@ -120,6 +134,7 @@ export const DocumentEditor = (): JSX.Element => {
       // update is important for init doc is in new state
       docStore.setInitDoc(Text.of([newText]));
       textDiffFromBeforeSave.current = false;
+      temp.setTextDiffFromBeforeSave(false);
       document.title = document.title.replace(constants.general.tabEditModePrefix, '');
     }
 
@@ -645,9 +660,21 @@ export const DocumentEditor = (): JSX.Element => {
         </Button>
       </> */}
 
+      {temp.textDiffFromBeforeSave && (
+        <Card className="absolute top-[80px] right-[10px] p-2 text-sm z-10 cursor-pointer flex flex-col rounded-sm">
+          <p>Unsaved changes, to save click</p>
+          <p className="pt-1">
+            <Badge>cmd/ctr + s</Badge>
+          </p>
+        </Card>
+      )}
+
       <CodeMirror
         ref={editorRef}
-        value={docStore.initDoc?.toString()}
+        value={
+          '#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello'
+        }
+        // value={docStore.initDoc?.toString()}
         onChange={(value, update) => {
           console.log('='.repeat(20));
           console.log(documentShareStore.isEnabled);
@@ -668,7 +695,9 @@ export const DocumentEditor = (): JSX.Element => {
             return;
           }
 
-          textDiffFromBeforeSave.current = value !== docStore.initDoc?.toString();
+          const difference = value !== docStore.initDoc?.toString();
+          textDiffFromBeforeSave.current = difference;
+          temp.setTextDiffFromBeforeSave(difference);
 
           const tabTitleStartsWithPrefix = document.title.startsWith(
             constants.general.tabEditModePrefix,
@@ -683,7 +712,7 @@ export const DocumentEditor = (): JSX.Element => {
           }
         }}
         width="1050px"
-        className="w-fit mx-auto h-full cm-custom"
+        className="w-fit mx-auto h-full cm-custom relative"
         autoFocus
         spellCheck
         editable={!docStore.readonly}
