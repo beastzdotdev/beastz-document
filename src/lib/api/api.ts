@@ -22,26 +22,30 @@ api.interceptors.response.use(r => r, handleAxiosResponseError);
 // needs to be like this
 let refreshingFunc: Promise<HandleRefreshType> | undefined;
 
+const redirect = (url: string) => {
+  window.location.assign(url);
+};
+
 const redirectToAuthSignin = () => {
   const externalUrl = new URL(constants.externalLinks.signIn);
-  const inlineHomeUrl = cleanURL(constants.path.home).toString();
+  const inlineHomeUrlEncoded = btoa(cleanURL(constants.path.home).toString());
 
-  externalUrl.searchParams.set('redirect', inlineHomeUrl);
+  externalUrl.searchParams.set('redirect', inlineHomeUrlEncoded);
 
-  window.location.assign(externalUrl.toString());
+  redirect(externalUrl.toString());
 };
 
 const redirectToOops = (message?: string) => {
   const seconParams = message ? { message } : undefined;
   const inlineOopsUrl = cleanURL(constants.path.oops, seconParams).toString();
 
-  window.location.assign(inlineOopsUrl);
+  redirect(inlineOopsUrl);
 };
 
 const redirectToVerify = () => {
   const externalUrl = constants.externalLinks.authVerify;
 
-  window.location.assign(externalUrl);
+  redirect(externalUrl);
 };
 
 const alertAndRedirect = (message: string, type: 'oops' | 'sign-in' | 'verify') => {
@@ -222,6 +226,8 @@ function handleUserExceptionsInAccess(message?: ExceptionMessageCode) {
       alertAndRedirect('User is locked, please verify account again', 'sign-in');
       break;
     case ExceptionMessageCode.MISSING_TOKEN:
+      redirectToAuthSignin();
+      break;
     case ExceptionMessageCode.INVALID_TOKEN:
       alertAndRedirect('Session expired', 'sign-in');
       break;

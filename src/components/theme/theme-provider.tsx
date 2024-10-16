@@ -10,7 +10,7 @@ type ThemeProviderState = {
 };
 
 const storageKey = 'app-ui-theme';
-const defaultTheme = 'light';
+const defaultTheme = 'dark';
 const themeValues = Object.values(constants.ui.themes);
 export const ThemeProviderContext = createContext<ThemeProviderState>({
   theme: 'system',
@@ -19,13 +19,16 @@ export const ThemeProviderContext = createContext<ThemeProviderState>({
 
 export default function ThemeProvider(props: ReactChildren): JSX.Element {
   const [theme, setTheme] = useState<string>(
-    () => window.localStorage.getItem(storageKey) || defaultTheme
+    () => window.localStorage.getItem(storageKey) || defaultTheme,
   );
 
   useEffect(() => {
     const body = window.document.body;
 
     body.classList.remove(...themeValues);
+
+    console.log('='.repeat(20));
+    console.log(theme);
 
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
