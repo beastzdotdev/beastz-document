@@ -37,8 +37,8 @@ type UserDocStore = {
 };
 
 type JoinedPeopleState = {
-  people: string[];
-  setPeople: (people: string[]) => void;
+  people: { socketId: string; color: string; text: string }[];
+  setPeople: (people: { socketId: string; color: string; text: string }[]) => void;
   clear: () => void;
 };
 
@@ -87,6 +87,6 @@ export const useDocStore = create<UserDocStore>(set => ({
 
 export const useJoinedPeopleStore = create<JoinedPeopleState>(set => ({
   people: [],
-  setPeople: (people: string[]) => set({ people }),
+  setPeople: (people: { socketId: string; color: string; text: string }[]) => set({ people }),
   clear: () => set({ people: [] }),
 }));

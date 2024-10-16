@@ -150,6 +150,16 @@ export const updateFileStructurePublicShare = async (
   }
 };
 
+export const moveToBin = async (id: number): Promise<AxiosApiResponse<void>> => {
+  try {
+    await api.patch<void>(`file-structure/move-to-bin/${id}`);
+
+    return {};
+  } catch (e: unknown) {
+    return { error: e as ClientApiError };
+  }
+};
+
 export const replaceFileStructureText = async (
   id: number | string,
   params: { text: string; checkEditMode?: boolean },

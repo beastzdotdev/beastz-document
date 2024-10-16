@@ -1,36 +1,25 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { ItemDropdown } from "@/app/(auth)/(root)/home/_components/item-dropdown";
-import { FileStructure } from "@/lib/api/type";
-import { formatDate, getDocumentRedirectUrl } from "@/lib/utils";
-import { CardIcon } from "@/app/(auth)/(root)/home/_components/card-icon";
+import Image from 'next/image';
+import Link from 'next/link';
+import { Card } from '@/components/ui/card';
+import { ItemDropdown } from '@/app/(auth)/(root)/home/_components/item-dropdown';
+import { FileStructure } from '@/lib/api/type';
+import { formatDate, getDocumentRedirectUrl } from '@/lib/utils';
+import { CardIcon } from '@/app/(auth)/(root)/home/_components/card-icon';
 
 //TODO: resolve this issue
-const imgUrl =
-  "https://miro.medium.com/v2/resize:fit:1087/1*37nudw5YFzaQOo3RYcKrZA.png";
+const imgUrl = 'https://miro.medium.com/v2/resize:fit:1087/1*37nudw5YFzaQOo3RYcKrZA.png';
 
-export const GridViewItem = ({
-  item,
-}: {
-  item: FileStructure;
-}): JSX.Element => {
+export const GridViewItem = ({ item }: { item: FileStructure }): JSX.Element => {
   return (
-    <Card
-      className="h-fit w-fit border rounded-md border-gray-700"
-      key={item.id}
-    >
-      <Link
-        href={getDocumentRedirectUrl(item)}
-        className="w-[218px] h-[263px] block select-none"
-      >
+    <Card className="h-fit w-fit border rounded-md border-gray-700" key={item.id}>
+      <Link href={getDocumentRedirectUrl(item)} className="w-[218px] h-[263px] block select-none">
         <Image
           src={imgUrl}
           width="0"
           height="0"
           sizes="100vw"
           className="w-full h-full rounded-t-md"
-          alt="Follow us on Twitter"
+          alt="Logo"
           priority
         />
       </Link>

@@ -12,18 +12,17 @@ import { useParams, useRouter } from 'next/navigation';
 import { cleanURL } from '@/lib/utils';
 import { constants } from '@/lib/constants';
 import { ReactChildren } from '@/lib/types';
-import { Button } from '@/components/ui/button';
 import { Profile } from '@/components/app/profile';
 import { ExternalLink } from '@/components/app/external-link';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
 import { LayoutTitle } from '@/app/(auth)/document/_components/layout-title';
 import { CollabButton } from '@/app/(auth)/document/_components/collab-button';
-// import { JoinedPeople } from '@/app/(auth)/document/_components/joined-people';
 import { ConnectionIndicator } from '@/app/(auth)/document/_components/connection-indicator';
 import { getFileStructureById, getFileStructurePublicShareEnabled } from '@/lib/api/definitions';
 import { DocumentMenubar } from '@/app/(auth)/document/[documentId]/_components/document-menu-bar';
 import { useDocumentShareStore, useDocumentStore } from '@/app/(auth)/document/[documentId]/state';
 import { JoinedPeopleAmount } from '@/app/(auth)/document/_components/joined-people-amount';
+import { VaultButton } from '@/components/app/vault-button';
 
 export default function DocumentTemplate({ children }: ReactChildren): JSX.Element {
   const router = useRouter();
@@ -75,7 +74,7 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
       <header className="pt-2 top-0 flex items-center gap-4 border-b px-4 pb-1.5">
         <div className="flex">
           <Link href="/home" className="flex items-center gap-2 text-lg font-semibold md:text-base">
-            <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-9" />
+            <Image src={LogoSvg} priority alt="Logo" className="w-9" />
           </Link>
 
           <div className="flex flex-col pl-2">
@@ -98,6 +97,7 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
                     <ExternalLink href={constants.externalLinks.beastzVault}>Vault</ExternalLink>
                   </>
                 }
+                contentClassName="select-none"
               >
                 <Icon
                   icon="dashicons:cloud-saved"
@@ -113,9 +113,9 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
         </div>
 
         <div className="flex justify-end w-full items-center md:ml-auto gap-3 flex-1">
-          <Button size="icon" variant="ghost" className="focus-visible:ring-0">
+          {/* <Button size="icon" variant="ghost" className="focus-visible:ring-0">
             <Icon icon="ion:apps" className="text-xl" />
-          </Button>
+          </Button> */}
 
           {initialLoadingIsReady ? (
             <>
@@ -130,6 +130,8 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
               <CollabButton />
             </>
           ) : null}
+
+          <VaultButton />
 
           <Profile />
         </div>

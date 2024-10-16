@@ -71,11 +71,11 @@ export const DashboardRoot = (): JSX.Element => {
             </Button>
           </BasicTooltip>
 
-          <BasicTooltip content="Sort options" asChild>
+          {/* <BasicTooltip content="Sort options" asChild>
             <Button variant="ghost" size="icon">
               <Icon icon="icon-park-outline:sort" className="text-xl" />
             </Button>
-          </BasicTooltip>
+          </BasicTooltip> */}
 
           <BasicTooltip content="Open file" asChild>
             <Button variant="ghost" size="icon" onClick={() => bus.emit('open:file-modal')}>

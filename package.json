@@ -15,6 +15,7 @@
   "dependencies": {
     "@codemirror/autocomplete": "^6.17.0",
     "@codemirror/collab": "^6.1.1",
+    "@codemirror/commands": "^6.7.0",
     "@codemirror/lang-markdown": "^6.2.5",
     "@codemirror/language": "^6.10.2",
     "@codemirror/language-data": "^6.5.1",

@@ -4,14 +4,24 @@ type Props = {
   children: React.ReactNode;
   content: string | React.ReactNode;
   asChild?: boolean;
+  className?: string;
+  contentClassName?: string;
 };
 
-export const BasicTooltip = ({ children, content, asChild }: Props) => {
+export const BasicTooltip = ({
+  children,
+  content,
+  asChild,
+  className,
+  contentClassName,
+}: Props) => {
   return (
     <TooltipProvider delayDuration={350}>
       <Tooltip>
-        <TooltipTrigger asChild={asChild}>{children}</TooltipTrigger>
-        <TooltipContent>{content}</TooltipContent>
+        <TooltipTrigger className={className} asChild={asChild}>
+          {children}
+        </TooltipTrigger>
+        <TooltipContent className={contentClassName}>{content}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

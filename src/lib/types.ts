@@ -49,3 +49,9 @@ export type AxiosApiResponse<T> = {
 };
 
 export type SocketStatus = 'connected' | 'disconnected' | 'reconnecting';
+
+export type CursorData = {
+  color: string;
+  text: string;
+  id: string;
+};

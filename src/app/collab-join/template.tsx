@@ -70,9 +70,7 @@ export default function CollabJoinTemplate({ children }: ReactChildren) {
     <div className="flex min-h-screen w-full flex-col h-full">
       <header className="pt-2 top-0 flex items-center gap-4 border-b px-4 pb-1.5">
         <div className="flex">
-          <Link href="/home" className="flex items-center gap-2 text-lg font-semibold md:text-base">
-            <Image src={LogoSvg} priority alt="Follow us on Twitter" className="w-9" />
-          </Link>
+          <Image src={LogoSvg} priority alt="Logo" className="w-9" />
 
           <div className="flex flex-col pl-2">
             <div className="pl-2 flex items-center gap-3">

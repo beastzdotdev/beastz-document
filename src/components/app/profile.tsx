@@ -42,9 +42,6 @@ export const Profile = (): JSX.Element => {
         </ExternalLink>
 
         <DropdownMenuItem onClick={() => bus.emit('open:settings')}>Settings</DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>Sign out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

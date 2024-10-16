@@ -62,7 +62,7 @@ export const constants = {
       PullDocFull: 'pull_doc_full',
       UserLeft: 'user_left',
       UserJoined: 'user_joined',
-      CursorLocation: 'cursor_location',
+      // CursorLocation: 'cursor_location',
       RetryConnection: 'retry_connection',
       PullTotalSockets: 'pull_total_sockets',
       DocumentShareDisabled: 'document_share_disabled',

@@ -79,3 +79,11 @@ export const getDocumentRedirectUrl = (item: FileStructure): string => {
 
   return `/document/${item.id}?${queryParams.toString()}`;
 };
+
+export const randomHexColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16);
+
+export const wordCount = (text: string): number => {
+  // Use a regular expression to match words, ignoring punctuation
+  const words = text.match(/\b\w+\b/g);
+  return words ? words.length : 0;
+};

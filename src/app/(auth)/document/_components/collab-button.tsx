@@ -3,7 +3,7 @@
 import { toast } from 'sonner';
 import { Icon } from '@iconify/react';
 import { useParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { bus } from '@/lib/bus';
 import { constants } from '@/lib/constants';
@@ -95,6 +95,12 @@ export const CollabButton = () => {
     toast.success('Copied to clipboard');
   }, []);
 
+  useEffect(() => {
+    bus.on('menubar:file:share', () => {
+      setIsPopoverOpen(true);
+    });
+  }, []);
+
   return (
     <>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
@@ -143,13 +149,13 @@ export const CollabButton = () => {
               )}
 
               <div className="flex justify-end mt-4">
-                {documentShareStore.data && !documentShareStore.data.isDisabled ? (
+                {/* {documentShareStore.data && !documentShareStore.data.isDisabled ? (
                   <>
                     <Button disabled variant="outline">
                       Regenerate (soon)
                     </Button>
                   </>
-                ) : null}
+                ) : null} */}
 
                 <Button disabled={documentShareStore.isLoading} onClick={enableSharingDocument}>
                   {documentShareStore.isLoading ? <LoadingIcon className="mr-2" /> : null}

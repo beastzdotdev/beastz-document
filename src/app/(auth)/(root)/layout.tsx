@@ -4,10 +4,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import LogoSvg from '@/assets/document.svg';
 
-import { Icon } from '@iconify/react';
-import { Button } from '@/components/ui/button';
 import { Profile } from '@/components/app/profile';
 import { ReactChildren } from '@/lib/types';
+import { VaultButton } from '@/components/app/vault-button';
 
 export default async function RootLayout({ children }: ReactChildren): Promise<JSX.Element> {
   return (
@@ -15,16 +14,8 @@ export default async function RootLayout({ children }: ReactChildren): Promise<J
       <div className="flex min-h-screen w-full flex-col h-full">
         <header className="top-0 flex items-center gap-4 border-b p-3">
           <div className="flex">
-            <Link
-              href={'/home'}
-              className="flex items-center gap-2 text-lg font-semibold md:text-base"
-            >
-              <Image
-                src={LogoSvg}
-                priority
-                alt="Follow us on Twitter"
-                className="w-7 select-none"
-              />
+            <Link href={'/home'}>
+              <Image src={LogoSvg} priority alt="Logo" className="w-8 select-none" />
             </Link>
 
             <p className="text-xl font-normal text-nowrap tracking-tight flex items-center ml-3">
@@ -33,14 +24,12 @@ export default async function RootLayout({ children }: ReactChildren): Promise<J
           </div>
 
           <div className="flex justify-end w-full items-center gap-3 flex-1">
-            <Button variant="default" className="rounded-full">
+            {/* <Button variant="default" className="rounded-full">
               <Icon icon="ic:round-plus" className="mr-2 text-xl" />
               Create
-            </Button>
+            </Button> */}
 
-            <Button size="icon" variant="ghost" className="focus-visible:ring-0">
-              <Icon icon="ion:apps" className="text-xl" />
-            </Button>
+            <VaultButton />
             <Profile />
           </div>
         </header>

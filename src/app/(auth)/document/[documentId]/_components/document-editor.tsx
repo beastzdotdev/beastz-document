@@ -2,20 +2,21 @@
 
 import * as themes from '@uiw/codemirror-themes-all';
 import { toast } from 'sonner';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CodeMirror, { ChangeSet, EditorView, Extension, Rect, Text } from '@uiw/react-codemirror';
 
 import { bus } from '@/lib/bus';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { EditorTheme, SocketError } from '@/lib/types';
+import { CursorData, EditorTheme, SocketError } from '@/lib/types';
 import { docConfigBundle } from '@/components/app/editor/extensions';
-import { copyToClipboard, sleep } from '@/lib/utils';
+import { copyToClipboard, randomHexColor, sleep, wordCount } from '@/lib/utils';
 import { docEditSocket } from '@/app/(auth)/document/[documentId]/_components/socket';
 import {
   getCollabActiveParticipantsPublic,
   getDocumentText,
+  moveToBin,
   replaceFileStructureText,
 } from '@/lib/api/definitions';
 import { constants } from '@/lib/constants';
@@ -26,19 +27,8 @@ import {
   useJoinedPeopleStore,
   useSocketStore,
 } from '@/app/(auth)/document/[documentId]/state';
-import { Button } from '@/components/ui/button';
-
-type CursorData = {
-  color: string;
-  text: string;
-  id: string;
-  pos: number;
-};
-
-const arrOfCursors: CursorData[] = [
-  { color: '#009c2f', text: 'Gela', id: crypto.randomUUID(), pos: 12 },
-  { color: '#009c2f', text: 'Gelaasdasdasdasd', id: crypto.randomUUID(), pos: 78 },
-];
+import { openSearchPanel } from '@codemirror/search';
+import { useRouter } from 'next/navigation';
 
 const DEFAULT_PADDING = 30; // can be modified
 const IMPORTANT_SIDE = -1;
@@ -50,6 +40,10 @@ const IMPORTANT_SIDE = -1;
  */
 export const DocumentEditor = (): JSX.Element => {
   const [theme, _setTheme] = useState<EditorTheme>('dark');
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const title = searchParams.get(constants.general.queryTitleForDocument) ?? '';
 
   const params = useParams<{ documentId: string }>();
   const editorRef = useRef<{ view: EditorView }>(null);
@@ -150,9 +144,13 @@ export const DocumentEditor = (): JSX.Element => {
       const { characterPosition, editorDom, contentDom } = props;
 
       // Get coordinates for left position calculation, this gives positions for
-      const cords = view().coordsAtPos(characterPosition, IMPORTANT_SIDE) as Rect;
+      const cords = editorRef.current?.view.coordsAtPos(characterPosition, IMPORTANT_SIDE) as Rect;
+      // const cords = view().coordsAtPos(characterPosition, IMPORTANT_SIDE) as Rect;
 
-      const defaultLineHeight = Math.round(view().defaultLineHeight as number);
+      console.log('='.repeat(20) + 'calling calc cords');
+      console.log(cords);
+
+      const defaultLineHeight = Math.round(editorRef.current?.view.defaultLineHeight as number);
 
       // How much is root editor dom from left and top (that is why we substract from cords.left and cords.top)
       // ContentDom is necessary because hovering vertically is enabled and dom may get out of bounds
@@ -166,7 +164,7 @@ export const DocumentEditor = (): JSX.Element => {
         lineHeight: defaultLineHeight,
       };
     },
-    [view],
+    [],
   );
 
   const renderCursor = useCallback(
@@ -200,10 +198,182 @@ export const DocumentEditor = (): JSX.Element => {
     [],
   );
 
-  useEffect(() => {
-    bus.on('editor:select-all', selectAll);
-    bus.on('editor:copy', copySelected);
-  }, [copySelected, selectAll]);
+  const onCursorLocationChange = useCallback(
+    (data: { socketId: string; cursorCharacterPos: number }) => {
+      console.log('hi');
+      console.log(data);
+
+      const { cursorCharacterPos, socketId } = data;
+
+      const cursorData = useJoinedPeopleStore.getState().people.find(e => e.socketId === socketId);
+
+      if (!cursorData) {
+        return;
+      }
+
+      const { left, lineHeight, top } = calculateCords({
+        characterPosition: cursorCharacterPos,
+        editorDom: document.querySelector('.cm-editor')!,
+        contentDom: document.querySelector('.cm-content')!,
+      });
+
+      // console.log('='.repeat(20));
+      // console.log(cursorCharacterPos);
+
+      document.getElementById(socketId)?.remove();
+
+      renderCursor({
+        lineHeight,
+        left,
+        top,
+        color: cursorData.color,
+        id: cursorData.socketId,
+        text: cursorData.text,
+      });
+    },
+    [calculateCords, renderCursor],
+  );
+
+  // const onPaste = useCallback(
+  //   async () => {
+  //     const text = await navigator.clipboard.readText();
+
+  //     if (!text) {
+  //       toast.info('Nothing to paste');
+  //       return;
+  //     }
+
+  //     const { from, to, empty } = view().state.selection.main;
+
+  //     // clear first if text is selected
+  //     if (!empty) {
+  //       view().dispatch({
+  //         changes: {
+  //           from,
+  //           to,
+  //           insert: '',
+  //         },
+  //       });
+  //     }
+
+  //     console.log('='.repeat(20));
+  //     console.log(from, to, empty);
+
+  //     view().dispatch({
+  //       changes: {
+  //         insert: text,
+  //         from,
+  //       },
+  //       scrollIntoView: false,
+  //     });
+
+  //     view().focus();
+  //   },
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [editorRef.current?.view],
+  // );
+
+  const onDelete = useCallback(
+    () => {
+      const { doc, selection } = view().state;
+      const { from, to, anchor } = selection.main;
+
+      const changes = ChangeSet.of([{ from, to, insert: '' }], doc.length);
+      const sharedUniqueHash = documentStore.getDocumentStrict().sharedUniqueHash;
+
+      view().dispatch({
+        changes,
+        scrollIntoView: false,
+      });
+
+      // emit change from here because onChange does not accept this event from component
+      docEditSocket.emit(constants.socket.events.PushDoc, {
+        changes: changes.toJSON(),
+        sharedUniqueHash,
+        cursorCharacterPos: anchor,
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editorRef.current?.view, documentStore],
+  );
+
+  const onFindAndReplace = useCallback(
+    () => openSearchPanel(view()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editorRef.current?.view],
+  );
+
+  const totalWordCount = useCallback(
+    () => {
+      const length = wordCount(view().state.doc.toString());
+      toast.info(`Word count is ${length}`);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editorRef.current?.view],
+  );
+
+  const onDownload = useCallback(
+    (type: 'markdown' | 'text') => {
+      let ext = '.txt';
+
+      switch (type) {
+        case 'markdown':
+          ext = '.md';
+          break;
+        case 'text':
+        default:
+          ext = '.txt';
+      }
+
+      // remove already existing ext from title and add custom one
+      const newTitle = title.split('.').slice(0, -1).join('.').concat(ext);
+
+      const text = view().state.doc.toString();
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = newTitle;
+      a.click();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editorRef.current?.view],
+  );
+
+  const onFileDelete = useCallback(
+    async () => {
+      const { error } = await moveToBin(parseInt(params.documentId));
+
+      if (error) {
+        toast.warning('Something went wrong, please try again');
+        return;
+      }
+
+      router.push(constants.path.home);
+    },
+    //
+    [params.documentId, router],
+  );
+
+  useEffect(
+    () => {
+      // bus.on('menubar:edit:undo', () => {});
+      // bus.on('menubar:edit:redo', () => {});
+      bus.on('menubar:edit:cut', () => window.getSelection()?.deleteFromDocument());
+      bus.on('menubar:edit:copy', copySelected);
+      // bus.on('menubar:edit:paste', onPaste);
+      bus.on('menubar:edit:select-all', selectAll);
+      bus.on('menubar:edit:delete', onDelete);
+      bus.on('menubar:edit:find-and-replace', onFindAndReplace);
+      bus.on('menubar:edit:tools:word-count', totalWordCount);
+
+      bus.on('menubar:file:download', onDownload);
+      // bus.on('menubar:file:details', () => {});
+      bus.on('menubar:file:delete', onFileDelete);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   useEffect(
     () => {
@@ -286,7 +456,15 @@ export const DocumentEditor = (): JSX.Element => {
         }
 
         // here socket id is known
-        joinedPeopleStore.setPeople(data.filter(e => e !== docEditSocket.id));
+        joinedPeopleStore.setPeople(
+          data
+            .filter(e => e !== docEditSocket.id)
+            .map((e, i) => ({
+              socketId: e,
+              color: randomHexColor(),
+              text: `User ${i}`,
+            })),
+        );
       });
 
       docEditSocket.on(constants.socket.events.RetryConnection, async () => {
@@ -295,23 +473,42 @@ export const DocumentEditor = (): JSX.Element => {
         docEditSocket.connect();
       });
 
-      docEditSocket.on(constants.socket.events.PullDoc, (data: unknown) => {
-        view().dispatch({
-          scrollIntoView: false,
-          changes: ChangeSet.fromJSON(data),
-        });
-      });
+      docEditSocket.on(
+        constants.socket.events.PullDoc,
+        (data: { changes: string; cursorCharacterPos: number; socketId: string }) => {
+          view().dispatch({
+            scrollIntoView: false,
+            changes: ChangeSet.fromJSON(data.changes),
+          });
+
+          onCursorLocationChange({
+            socketId: data.socketId,
+            cursorCharacterPos: data.cursorCharacterPos,
+          });
+        },
+      );
 
       docEditSocket.on(constants.socket.events.UserJoined, (data: { socketId: string }) => {
         const newData = joinedPeopleStore.people
-          .concat(data.socketId)
-          .filter(e => e !== docEditSocket.id);
+          .concat({
+            socketId: data.socketId,
+            color: randomHexColor(),
+            text: `Guest ${joinedPeopleStore.people.length}`,
+          })
+          .filter(e => e.socketId !== docEditSocket.id);
+
         joinedPeopleStore.setPeople(newData);
       });
 
       docEditSocket.on(constants.socket.events.UserLeft, (data: { socketId: string }) => {
-        joinedPeopleStore.setPeople(joinedPeopleStore.people.filter(e => e !== data.socketId));
+        joinedPeopleStore.setPeople(
+          joinedPeopleStore.people.filter(e => e.socketId !== data.socketId),
+        );
+
+        document.getElementById(data.socketId)?.remove();
       });
+
+      // docEditSocket.on(constants.socket.events.CursorLocation, onCursorLocationChange);
 
       return () => {
         window.removeEventListener('keydown', handleKeyDownGlobally);
@@ -342,23 +539,6 @@ export const DocumentEditor = (): JSX.Element => {
 
   return (
     <>
-      <Button
-        className="fixed top-10 right-5"
-        onClick={() => {
-          const cursor = arrOfCursors[0];
-          const { left, lineHeight, top } = calculateCords({
-            characterPosition: 5,
-            editorDom: document.querySelector('.cm-editor')!,
-            contentDom: document.querySelector('.cm-content')!,
-          });
-
-          document.getElementById(cursor.id)?.remove();
-          renderCursor({ lineHeight, left, top, ...cursor });
-        }}
-      >
-        test cursor pos 5
-      </Button>
-
       {/* <>
         <p>readonly: {!!docStore.readonly ? 'yes' : 'no'}</p>
         <p>doc share: {JSON.stringify(documentShareStore)} </p>
@@ -469,21 +649,20 @@ export const DocumentEditor = (): JSX.Element => {
         ref={editorRef}
         value={docStore.initDoc?.toString()}
         onChange={(value, update) => {
+          console.log('='.repeat(20));
+          console.log(documentShareStore.isEnabled);
           if (documentShareStore.isEnabled) {
             docStore.setInitDoc(Text.of([value]));
 
             //TODO here this is too much code
-            if (update.docChanged && update.selectionSet) {
-              if (!update.changes.length) {
-                return;
-              }
+            if (update.docChanged && update.selectionSet && update?.changes?.length) {
+              const sharedUniqueHash = documentStore.getDocumentStrict().sharedUniqueHash;
 
-              const data = {
+              docEditSocket.emit(constants.socket.events.PushDoc, {
                 changes: update.changes.toJSON(),
-                sharedUniqueHash: documentStore.getDocumentStrict().sharedUniqueHash,
-              };
-
-              docEditSocket.emit(constants.socket.events.PushDoc, data);
+                sharedUniqueHash,
+                cursorCharacterPos: view().state.selection.main.anchor,
+              });
             }
 
             return;

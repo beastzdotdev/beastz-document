@@ -11,7 +11,7 @@ export const ConnectionIndicator = () => {
   switch (socketStatus) {
     case 'connected':
       return (
-        <BasicTooltip content={<>Connection is successfull</>}>
+        <BasicTooltip content={<>Connection is successfull</>} contentClassName="select-none">
           <Icon
             icon="fluent:plug-disconnected-48-regular"
             className="text-xl text-green-400 cursor-default"
@@ -20,7 +20,7 @@ export const ConnectionIndicator = () => {
       );
     case 'reconnecting':
       return (
-        <BasicTooltip content={<>Attempting reconnection</>}>
+        <BasicTooltip content={<>Attempting reconnection</>} contentClassName="select-none">
           <Icon
             icon="fluent:plug-disconnected-48-regular"
             className="text-xl text-orange-400 cursor-default"
@@ -29,7 +29,7 @@ export const ConnectionIndicator = () => {
       );
     case 'disconnected':
       return (
-        <BasicTooltip content={<>Disconnected, click to retry</>}>
+        <BasicTooltip content={<>Disconnected, click to retry</>} contentClassName="select-none">
           <Icon
             icon="fluent:plug-disconnected-48-regular"
             className="text-xl text-red-400 cursor-pointer"
