@@ -1,4 +1,5 @@
 import z from 'zod';
+import domtoimage, { Options } from 'dom-to-image';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { GeneralEnumType } from '@/lib/types';
@@ -86,4 +87,16 @@ export const wordCount = (text: string): number => {
   // Use a regular expression to match words, ignoring punctuation
   const words = text.match(/\b\w+\b/g);
   return words ? words.length : 0;
+};
+
+export const domToImage = (node: HTMLElement, options?: Options) => {
+  console.time('domtoimage');
+
+  return new Promise<Blob>((resolve, reject) =>
+    domtoimage
+      .toBlob(node, { quality: 1, ...options })
+      .then((blob: Blob) => resolve(blob))
+      .catch(error => reject(error))
+      .finally(() => console.timeEnd('domtoimage')),
+  );
 };

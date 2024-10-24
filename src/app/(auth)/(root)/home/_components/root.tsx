@@ -2,7 +2,7 @@
 
 import { toast } from 'sonner';
 import { bus } from '@/lib/bus';
-import { Icon } from '@iconify/react';
+import { Icon, loadIcons } from '@iconify/react';
 import { Button } from '@/components/ui/button';
 import { BasicTooltip } from '@/components/app/basic-tooltip';
 import { useCallback, useEffect, useState } from 'react';
@@ -37,6 +37,9 @@ export const DashboardRoot = (): JSX.Element => {
 
   useEffect(
     () => {
+      // preload icons
+      loadIcons(['ic:round-grid-view', 'ic:round-view-list']);
+
       // fill local storage before render
       // default will be grid !
       const item = localStorage.getItem(

@@ -105,6 +105,15 @@ export default function DocumentTemplate({ children }: ReactChildren): JSX.Eleme
                 />
               </BasicTooltip>
 
+              {documentShareStore.isEnabled && (
+                <BasicTooltip content="Collab mode is active">
+                  <Icon
+                    icon="fluent:people-20-filled"
+                    className="text-xl text-green-400 cursor-default"
+                  />
+                </BasicTooltip>
+              )}
+
               <ConnectionIndicator />
             </div>
 

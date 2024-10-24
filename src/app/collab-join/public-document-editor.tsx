@@ -101,11 +101,6 @@ export const PublicDocumentEditor = (): JSX.Element => {
 
       // Get coordinates for left position calculation, this gives positions for
       const cords = editorRef.current?.view.coordsAtPos(characterPosition, IMPORTANT_SIDE) as Rect;
-      // const cords = view().coordsAtPos(characterPosition, IMPORTANT_SIDE) as Rect;
-
-      console.log('='.repeat(20) + 'calling calc cords');
-      console.log(cords);
-
       const defaultLineHeight = Math.round(editorRef.current?.view.defaultLineHeight as number);
 
       // How much is root editor dom from left and top (that is why we substract from cords.left and cords.top)
@@ -156,9 +151,6 @@ export const PublicDocumentEditor = (): JSX.Element => {
 
   const onCursorLocationChange = useCallback(
     (data: { socketId: string; cursorCharacterPos: number }) => {
-      console.log('hi');
-      console.log(data);
-
       const { cursorCharacterPos, socketId } = data;
 
       const cursorData = useJoinedPeopleStore.getState().people.find(e => e.socketId === socketId);

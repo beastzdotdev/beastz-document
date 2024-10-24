@@ -2,6 +2,7 @@ import { Metadata, ResolvingMetadata } from 'next';
 import { constants } from '@/lib/constants';
 import { DocumentByIdPageParams } from '@/app/(auth)/document/[documentId]/types';
 import { DocumentEditor } from '@/app/(auth)/document/[documentId]/_components/document-editor';
+import { DocumentEditorWrapper } from '@/app/(auth)/document/[documentId]/_components/document-editor-wrapper';
 
 export async function generateMetadata(
   props: DocumentByIdPageParams,
@@ -19,7 +20,9 @@ export async function generateMetadata(
 export default async function DocumentByIdPage(): Promise<JSX.Element> {
   return (
     <>
-      <DocumentEditor />
+      <DocumentEditorWrapper>
+        <DocumentEditor />
+      </DocumentEditorWrapper>
     </>
   );
 }

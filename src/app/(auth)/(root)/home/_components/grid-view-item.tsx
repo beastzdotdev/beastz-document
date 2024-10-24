@@ -5,23 +5,27 @@ import { ItemDropdown } from '@/app/(auth)/(root)/home/_components/item-dropdown
 import { FileStructure } from '@/lib/api/type';
 import { formatDate, getDocumentRedirectUrl } from '@/lib/utils';
 import { CardIcon } from '@/app/(auth)/(root)/home/_components/card-icon';
-
-//TODO: resolve this issue
-const imgUrl = 'https://miro.medium.com/v2/resize:fit:1087/1*37nudw5YFzaQOo3RYcKrZA.png';
+import { Icon } from '@iconify/react/dist/iconify.js';
 
 export const GridViewItem = ({ item }: { item: FileStructure }): JSX.Element => {
   return (
-    <Card className="h-fit w-fit border rounded-md border-gray-700" key={item.id}>
+    <Card className="h-fit w-fit rounded-lg bg-[#282C34]" key={item.id}>
       <Link href={getDocumentRedirectUrl(item)} className="w-[218px] h-[263px] block select-none">
-        <Image
-          src={imgUrl}
-          width="0"
-          height="0"
-          sizes="100vw"
-          className="w-full h-full rounded-t-md"
-          alt="Logo"
-          priority
-        />
+        {item.documentImagePreviewPath ? (
+          <Image
+            src={item.documentImagePreviewPath}
+            className="rounded-t-md w-full h-full"
+            unoptimized
+            alt="Logo"
+            priority
+            width="0"
+            height="0"
+          />
+        ) : (
+          <div className="flex justify-center items-center w-full h-full">
+            <Icon icon="hugeicons:image-not-found-01" className="text-5xl" />
+          </div>
+        )}
       </Link>
 
       <div className="flex flex-col p-3">

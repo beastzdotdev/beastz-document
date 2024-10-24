@@ -150,6 +150,30 @@ export const updateFileStructurePublicShare = async (
   }
 };
 
+export const uploadDocumentImagePreviewPath = async (
+  id: number,
+  img: Blob,
+): Promise<AxiosApiResponse<string>> => {
+  try {
+    const formData = new FormData();
+    formData.append('img', img);
+
+    const result: AxiosResponse<string> = await api.patch(
+      `/file-structure/upload-document-image-preview-path/${id}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      },
+    );
+
+    return { data: result.data };
+  } catch (e: unknown) {
+    return { error: e as ClientApiError };
+  }
+};
+
 export const moveToBin = async (id: number): Promise<AxiosApiResponse<void>> => {
   try {
     await api.patch<void>(`file-structure/move-to-bin/${id}`);

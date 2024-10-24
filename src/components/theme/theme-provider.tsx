@@ -27,9 +27,6 @@ export default function ThemeProvider(props: ReactChildren): JSX.Element {
 
     body.classList.remove(...themeValues);
 
-    console.log('='.repeat(20));
-    console.log(theme);
-
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'

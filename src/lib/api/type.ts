@@ -34,6 +34,7 @@ export class FileStructure {
   absRelativePath: string | null = null;
   children: FileStructure[] | null;
   sharedUniqueHash: string;
+  documentImagePreviewPath: string | null;
 }
 
 export class FileStructurePublicShare {

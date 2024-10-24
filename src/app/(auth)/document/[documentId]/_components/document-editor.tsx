@@ -31,7 +31,6 @@ import { openSearchPanel } from '@codemirror/search';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { create } from 'zustand';
-import { BasicTooltip } from '@/components/app/basic-tooltip';
 import { Badge } from '@/components/ui/badge';
 
 const DEFAULT_PADDING = 30; // can be modified
@@ -160,10 +159,6 @@ export const DocumentEditor = (): JSX.Element => {
 
       // Get coordinates for left position calculation, this gives positions for
       const cords = editorRef.current?.view.coordsAtPos(characterPosition, IMPORTANT_SIDE) as Rect;
-      // const cords = view().coordsAtPos(characterPosition, IMPORTANT_SIDE) as Rect;
-
-      console.log('='.repeat(20) + 'calling calc cords');
-      console.log(cords);
 
       const defaultLineHeight = Math.round(editorRef.current?.view.defaultLineHeight as number);
 
@@ -215,9 +210,6 @@ export const DocumentEditor = (): JSX.Element => {
 
   const onCursorLocationChange = useCallback(
     (data: { socketId: string; cursorCharacterPos: number }) => {
-      console.log('hi');
-      console.log(data);
-
       const { cursorCharacterPos, socketId } = data;
 
       const cursorData = useJoinedPeopleStore.getState().people.find(e => e.socketId === socketId);
@@ -231,9 +223,6 @@ export const DocumentEditor = (): JSX.Element => {
         editorDom: document.querySelector('.cm-editor')!,
         contentDom: document.querySelector('.cm-content')!,
       });
-
-      // console.log('='.repeat(20));
-      // console.log(cursorCharacterPos);
 
       document.getElementById(socketId)?.remove();
 
@@ -270,9 +259,6 @@ export const DocumentEditor = (): JSX.Element => {
   //         },
   //       });
   //     }
-
-  //     console.log('='.repeat(20));
-  //     console.log(from, to, empty);
 
   //     view().dispatch({
   //       changes: {
@@ -671,13 +657,8 @@ export const DocumentEditor = (): JSX.Element => {
 
       <CodeMirror
         ref={editorRef}
-        value={
-          '#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello#Hello'
-        }
-        // value={docStore.initDoc?.toString()}
+        value={docStore.initDoc?.toString()}
         onChange={(value, update) => {
-          console.log('='.repeat(20));
-          console.log(documentShareStore.isEnabled);
           if (documentShareStore.isEnabled) {
             docStore.setInitDoc(Text.of([value]));
 
@@ -712,7 +693,7 @@ export const DocumentEditor = (): JSX.Element => {
           }
         }}
         width="1050px"
-        className="w-fit mx-auto h-full cm-custom relative"
+        className="w-fit h-full cm-custom relative"
         autoFocus
         spellCheck
         editable={!docStore.readonly}
