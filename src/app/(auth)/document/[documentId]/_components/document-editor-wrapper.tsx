@@ -15,15 +15,15 @@ export const DocumentEditorWrapper = (props: ReactChildren) => {
 
   const uploadDomImagePreview = useCallback(async () => {
     const node = document.querySelector('.cm-custom');
-    console.log('='.repeat(20));
-    console.log(node);
+    // console.log('='.repeat(20));
+    // console.log(node);
 
     if (!node) {
       return;
     }
 
     try {
-      console.log('start processs');
+      // console.log('start processs');
 
       const imgBlob = await domToImage(node as HTMLElement, {
         height: 1000, // max size
@@ -69,7 +69,7 @@ export const DocumentEditorWrapper = (props: ReactChildren) => {
   );
 
   const { restartTimer: _1, time: _2 } = useCountdown({
-    defaultTime: 3,
+    defaultTime: 10,
     infinite: true,
     onFinish: () => uploadDomImagePreview(),
   });

@@ -32,6 +32,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { create } from 'zustand';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const DEFAULT_PADDING = 30; // can be modified
 const IMPORTANT_SIDE = -1;
@@ -51,14 +52,12 @@ const tempSolution = create<{
  */
 export const DocumentEditor = (): JSX.Element => {
   const [theme, _setTheme] = useState<EditorTheme>('dark');
-
+  const params = useParams<{ documentId: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
   const title = searchParams.get(constants.general.queryTitleForDocument) ?? '';
 
-  const params = useParams<{ documentId: string }>();
   const editorRef = useRef<{ view: EditorView }>(null);
-
   const textDiffFromBeforeSave = useRef(false);
   const isInitPullDocFull = useRef(true);
 
@@ -67,7 +66,6 @@ export const DocumentEditor = (): JSX.Element => {
   const documentStore = useDocumentStore();
   const documentShareStore = useDocumentShareStore();
   const joinedPeopleStore = useJoinedPeopleStore();
-
   const temp = tempSolution();
 
   const extensions: Extension[] = useMemo(
@@ -80,45 +78,49 @@ export const DocumentEditor = (): JSX.Element => {
     [theme],
   );
 
-  const view = useCallback(
-    () => {
-      if (!editorRef.current) {
-        throw new Error('Editor not found');
-      }
-
-      return editorRef.current.view;
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editorRef.current?.view],
-  );
-
   const selectAll = useCallback(() => {
-    view().dispatch({
-      selection: { anchor: 0, head: view().state.doc.toString().length },
+    if (!editorRef.current?.view) {
+      return;
+    }
+    const view = editorRef.current.view;
+
+    view.dispatch({
+      selection: { anchor: 0, head: view.state.doc.toString().length },
     });
 
     // focus after selecting all from menubar
-    view().focus();
-  }, [view]);
+    view.focus();
+  }, []);
 
   const copySelected = useCallback(() => {
-    const selection = view().state.selection.main;
+    if (!editorRef.current?.view) {
+      return;
+    }
+
+    const view = editorRef.current.view;
+    const selection = view.state.selection.main;
 
     if (!selection || selection.empty) {
       toast.warning('Nothing was selected');
       return;
     }
 
-    const text = view().state.sliceDoc(selection.from, selection.to);
+    const text = view.state.sliceDoc(selection.from, selection.to);
     copyToClipboard(text);
 
     toast.success('Copied to clipboard');
     return;
-  }, [view]);
+  }, []);
 
   const handleSaveBeforeShare = async (): Promise<boolean> => {
+    if (!editorRef.current?.view) {
+      return false;
+    }
+
+    const view = editorRef.current.view;
+
     if (textDiffFromBeforeSave.current) {
-      const newText = view().state.doc.toString();
+      const newText = view.state.doc.toString();
 
       const { error } = await replaceFileStructureText(params.documentId, {
         text: newText,
@@ -238,83 +240,61 @@ export const DocumentEditor = (): JSX.Element => {
     [calculateCords, renderCursor],
   );
 
-  // const onPaste = useCallback(
-  //   async () => {
-  //     const text = await navigator.clipboard.readText();
+  const onDelete = useCallback(() => {
+    if (!editorRef.current?.view) {
+      return;
+    }
 
-  //     if (!text) {
-  //       toast.info('Nothing to paste');
-  //       return;
-  //     }
+    const view = editorRef.current.view;
 
-  //     const { from, to, empty } = view().state.selection.main;
+    const { doc, selection } = view.state;
+    const { from, to, anchor } = selection.main;
 
-  //     // clear first if text is selected
-  //     if (!empty) {
-  //       view().dispatch({
-  //         changes: {
-  //           from,
-  //           to,
-  //           insert: '',
-  //         },
-  //       });
-  //     }
+    const changes = ChangeSet.of([{ from, to, insert: '' }], doc.length);
+    const sharedUniqueHash = documentStore.getDocumentStrict().sharedUniqueHash;
 
-  //     view().dispatch({
-  //       changes: {
-  //         insert: text,
-  //         from,
-  //       },
-  //       scrollIntoView: false,
-  //     });
+    view.dispatch({
+      changes,
+      scrollIntoView: false,
+    });
 
-  //     view().focus();
-  //   },
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [editorRef.current?.view],
-  // );
+    // emit change from here because onChange does not accept this event from component
+    docEditSocket.emit(constants.socket.events.PushDoc, {
+      changes: changes.toJSON(),
+      sharedUniqueHash,
+      cursorCharacterPos: anchor,
+    });
+  }, [documentStore]);
 
-  const onDelete = useCallback(
-    () => {
-      const { doc, selection } = view().state;
-      const { from, to, anchor } = selection.main;
+  const onFindAndReplace = useCallback(() => {
+    if (!editorRef.current?.view) {
+      return;
+    }
 
-      const changes = ChangeSet.of([{ from, to, insert: '' }], doc.length);
-      const sharedUniqueHash = documentStore.getDocumentStrict().sharedUniqueHash;
+    const view = editorRef.current.view;
 
-      view().dispatch({
-        changes,
-        scrollIntoView: false,
-      });
+    openSearchPanel(view);
+  }, []);
 
-      // emit change from here because onChange does not accept this event from component
-      docEditSocket.emit(constants.socket.events.PushDoc, {
-        changes: changes.toJSON(),
-        sharedUniqueHash,
-        cursorCharacterPos: anchor,
-      });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editorRef.current?.view, documentStore],
-  );
+  const totalWordCount = useCallback(() => {
+    if (!editorRef.current?.view) {
+      return;
+    }
 
-  const onFindAndReplace = useCallback(
-    () => openSearchPanel(view()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editorRef.current?.view],
-  );
+    const view = editorRef.current.view;
 
-  const totalWordCount = useCallback(
-    () => {
-      const length = wordCount(view().state.doc.toString());
-      toast.info(`Word count is ${length}`);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editorRef.current?.view],
-  );
+    const length = wordCount(view.state.doc.toString());
+    toast.info(`Word count is ${length}`);
+  }, []);
 
   const onDownload = useCallback(
     (type: 'markdown' | 'text') => {
+      if (!editorRef.current?.view) {
+        return;
+      }
+
+      const view = editorRef.current.view;
+
       let ext = '.txt';
 
       switch (type) {
@@ -329,7 +309,7 @@ export const DocumentEditor = (): JSX.Element => {
       // remove already existing ext from title and add custom one
       const newTitle = title.split('.').slice(0, -1).join('.').concat(ext);
 
-      const text = view().state.doc.toString();
+      const text = view.state.doc.toString();
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
 
       const a = document.createElement('a');
@@ -337,39 +317,112 @@ export const DocumentEditor = (): JSX.Element => {
       a.download = newTitle;
       a.click();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editorRef.current?.view],
+    [title],
   );
 
-  const onFileDelete = useCallback(
-    async () => {
-      const { error } = await moveToBin(parseInt(params.documentId));
+  const pullDocFull = useCallback(async () => {
+    if (!editorRef.current?.view) {
+      return;
+    }
 
-      if (error) {
-        toast.warning('Something went wrong, please try again');
+    const view = editorRef.current.view;
+
+    const { data: text, error } = await getDocumentText(parseInt(params.documentId));
+
+    if (error || text === undefined) {
+      toast.error('Sorry, could not load document');
+      return;
+    }
+
+    if (isInitPullDocFull.current) {
+      docStore.setInitDoc(Text.of([text])); // this only works on init
+    } else {
+      // replace all with new text
+      view.dispatch({
+        changes: {
+          from: 0,
+          to: view.state.doc.length,
+          insert: text,
+        },
+      });
+    }
+    // disable initial
+    isInitPullDocFull.current = false;
+
+    // loading state for modal button and also readonly state for editor will be resolved in socket event response
+    docStore.setReadonly(false);
+    documentShareStore.setIsLoading(false);
+
+    const fsId = parseInt(window.location.pathname.split('/').pop() ?? '');
+    if (typeof fsId !== 'number') {
+      throw new Error('Something went wrong');
+    }
+
+    const { data, error: err } = await getCollabActiveParticipantsPublic(fsId);
+
+    if (err || !data) {
+      return;
+    }
+
+    // here socket id is known
+    joinedPeopleStore.setPeople(
+      data
+        .filter(e => e !== docEditSocket.id)
+        .map((e, i) => ({
+          socketId: e,
+          color: randomHexColor(),
+          text: `User ${i}`,
+        })),
+    );
+  }, [docStore, documentShareStore, joinedPeopleStore, params.documentId]);
+
+  const pullDoc = useCallback(
+    (data: { changes: string; cursorCharacterPos: number; socketId: string }) => {
+      if (!editorRef.current?.view) {
         return;
       }
 
-      router.push(constants.path.home);
+      const view = editorRef.current.view;
+
+      view.dispatch({
+        scrollIntoView: false,
+        changes: ChangeSet.fromJSON(data.changes),
+      });
+
+      onCursorLocationChange({
+        socketId: data.socketId,
+        cursorCharacterPos: data.cursorCharacterPos,
+      });
     },
-    //
-    [params.documentId, router],
+    [onCursorLocationChange],
   );
+
+  const onFileDelete = useCallback(async () => {
+    const { error } = await moveToBin(parseInt(params.documentId));
+
+    if (error) {
+      toast.warning('Something went wrong, please try again');
+      return;
+    }
+
+    router.push(constants.path.home);
+  }, [params.documentId, router]);
 
   useEffect(
     () => {
       // bus.on('menubar:edit:undo', () => {});
       // bus.on('menubar:edit:redo', () => {});
+      // bus.on('menubar:edit:paste', onPaste);
+      // bus.on('menubar:file:details', () => {});
+
       bus.on('menubar:edit:cut', () => window.getSelection()?.deleteFromDocument());
       bus.on('menubar:edit:copy', copySelected);
-      // bus.on('menubar:edit:paste', onPaste);
       bus.on('menubar:edit:select-all', selectAll);
       bus.on('menubar:edit:delete', onDelete);
       bus.on('menubar:edit:find-and-replace', onFindAndReplace);
       bus.on('menubar:edit:tools:word-count', totalWordCount);
 
       bus.on('menubar:file:download', onDownload);
-      // bus.on('menubar:file:details', () => {});
       bus.on('menubar:file:delete', onFileDelete);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -418,55 +471,7 @@ export const DocumentEditor = (): JSX.Element => {
       });
 
       // User defined events
-      docEditSocket.on(constants.socket.events.PullDocFull, async () => {
-        const { data: text, error } = await getDocumentText(parseInt(params.documentId));
-
-        if (error || text === undefined) {
-          toast.error('Sorry, could not load document');
-          return;
-        }
-
-        if (isInitPullDocFull.current) {
-          docStore.setInitDoc(Text.of([text])); // this only works on init
-        } else {
-          // replace all with new text
-          view().dispatch({
-            changes: {
-              from: 0,
-              to: view().state.doc.length,
-              insert: text,
-            },
-          });
-        }
-        // disable initial
-        isInitPullDocFull.current = false;
-
-        // loading state for modal button and also readonly state for editor will be resolved in socket event response
-        docStore.setReadonly(false);
-        documentShareStore.setIsLoading(false);
-
-        const fsId = parseInt(window.location.pathname.split('/').pop() ?? '');
-        if (typeof fsId !== 'number') {
-          throw new Error('Something went wrong');
-        }
-
-        const { data, error: err } = await getCollabActiveParticipantsPublic(fsId);
-
-        if (err || !data) {
-          return;
-        }
-
-        // here socket id is known
-        joinedPeopleStore.setPeople(
-          data
-            .filter(e => e !== docEditSocket.id)
-            .map((e, i) => ({
-              socketId: e,
-              color: randomHexColor(),
-              text: `User ${i}`,
-            })),
-        );
-      });
+      docEditSocket.on(constants.socket.events.PullDocFull, pullDocFull);
 
       docEditSocket.on(constants.socket.events.RetryConnection, async () => {
         docEditSocket.disconnect();
@@ -474,20 +479,7 @@ export const DocumentEditor = (): JSX.Element => {
         docEditSocket.connect();
       });
 
-      docEditSocket.on(
-        constants.socket.events.PullDoc,
-        (data: { changes: string; cursorCharacterPos: number; socketId: string }) => {
-          view().dispatch({
-            scrollIntoView: false,
-            changes: ChangeSet.fromJSON(data.changes),
-          });
-
-          onCursorLocationChange({
-            socketId: data.socketId,
-            cursorCharacterPos: data.cursorCharacterPos,
-          });
-        },
-      );
+      docEditSocket.on(constants.socket.events.PullDoc, pullDoc);
 
       docEditSocket.on(constants.socket.events.UserJoined, (data: { socketId: string }) => {
         const newData = joinedPeopleStore.people
@@ -543,90 +535,8 @@ export const DocumentEditor = (): JSX.Element => {
       {/* <>
         <p>readonly: {!!docStore.readonly ? 'yes' : 'no'}</p>
         <p>doc share: {JSON.stringify(documentShareStore)} </p>
-        <div className="flex">
-          <p>sock status: {socketStore.status} </p>
-          {socketStore.status === 'connected' ? (
-            <div className="w-5 h-5 bg-green-500 rounded-full"></div>
-          ) : (
-            <div className="w-5 h-5 bg-red-500 rounded-full"></div>
-          )}
-        </div>
-
-        <Button
-          onClick={() => {
-            const cords = editorRef.current?.view.coordsAtPos(10, IMPORTANT_SIDE) as Rect;
-
-            console.log('='.repeat(20));
-            console.log(cords);
-          }}
-        >
-          pos
-        </Button>
-        <Button
-          onClick={() => {
-            const cursor = arrOfCursors[0];
-            const { left, lineHeight, top } = calculateCords({
-              characterPosition: 10,
-              editorDom: document.querySelector('.cm-editor')!,
-              contentDom: document.querySelector('.cm-content')!,
-            });
-
-            document.getElementById(cursor.id)?.remove();
-            renderCursor({ lineHeight, left, top, ...cursor });
-          }}
-        >
-          test cursor pos 10
-        </Button>
-        <Button
-          onClick={() => {
-            const cursor = arrOfCursors[0];
-            const { left, lineHeight, top } = calculateCords({
-              characterPosition: 50,
-              editorDom: document.querySelector('.cm-editor')!,
-              contentDom: document.querySelector('.cm-content')!,
-            });
-
-            document.getElementById(cursor.id)?.remove();
-            renderCursor({ lineHeight, left, top, ...cursor });
-          }}
-        >
-          test cursor pos 50
-        </Button>
-        <Button
-          onClick={async () => {
-            const result = await getDocumentText(parseInt(params.documentId));
-            console.log('='.repeat(20));
-            console.log(result);
-          }}
-        >
-          test x
-        </Button>
-        <Button
-          onClick={() => {
-            // insert new text at the end of line
-            view().dispatch({
-              changes: {
-                from: view().state.doc.toString().length,
-                insert: Text.of([
-                  'Hello',
-                  'World',
-                  'Hello'.repeat(10),
-                  ...Array.from({ length: 100 }, (_, i) => `Test ${i}`),
-                ]).toString(),
-              },
-            });
-          }}
-        >
-          instert big text
-        </Button>
+        <p>sock status: {socketStore.status} </p>
         <Button onClick={() => selectAll()}>select all</Button>
-        <Button
-          onClick={() => {
-            docEditSocket.connect();
-          }}
-        >
-          connect
-        </Button>
         <Button onClick={() => docEditSocket.emit('test')}>test</Button>
         <Button onClick={() => docEditSocket.disconnect()}>disconnect</Button>
         <Button onClick={() => docEditSocket.io.engine.close()}>low-level diconnect</Button>
@@ -649,9 +559,9 @@ export const DocumentEditor = (): JSX.Element => {
       {temp.textDiffFromBeforeSave && (
         <Card className="absolute top-[80px] right-[10px] p-2 text-sm z-10 cursor-pointer flex flex-col rounded-sm">
           <p>Unsaved changes, to save click</p>
-          <p className="pt-1">
+          <div className="pt-1">
             <Badge>cmd/ctr + s</Badge>
-          </p>
+          </div>
         </Card>
       )}
 
@@ -662,14 +572,19 @@ export const DocumentEditor = (): JSX.Element => {
           if (documentShareStore.isEnabled) {
             docStore.setInitDoc(Text.of([value]));
 
-            //TODO here this is too much code
             if (update.docChanged && update.selectionSet && update?.changes?.length) {
               const sharedUniqueHash = documentStore.getDocumentStrict().sharedUniqueHash;
+
+              if (!editorRef.current?.view) {
+                return;
+              }
+
+              const view = editorRef.current.view;
 
               docEditSocket.emit(constants.socket.events.PushDoc, {
                 changes: update.changes.toJSON(),
                 sharedUniqueHash,
-                cursorCharacterPos: view().state.selection.main.anchor,
+                cursorCharacterPos: view.state.selection.main.anchor,
               });
             }
 

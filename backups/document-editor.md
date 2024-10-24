@@ -128,23 +128,6 @@ export const DocumentEditor = (): JSX.Element => {
         useSocketStore.getState().setStatus('disconnected');
       });
 
-      // docEditSocket.on('connect_error', (err: SocketError) => {
-      //   if (!err?.message) {
-      //     toast.warning('Something went wrong, please try again');
-      //   } else if (enumValueIncludes(ExceptionMessageCode, err.message)) {
-      //     toast.warning(err.message); //TODO: appropriate messages
-      //   } else {
-      //     toast.warning('Something went wrong, please try again');
-      //   }
-
-      //   bus.emit('socket:disconnected');
-      // });
-
-      // docEditSocket.on('connect_failed', () => {
-      //   toast.warning('Something went wrong, please try again');
-      //   bus.emit('socket:disconnected');
-      // });
-
       docEditSocket.io.on('reconnect', attempt => {
         editor?.current?.view.dispatch({
           effects: peerExtensionCompartment.reconfigure([]),
