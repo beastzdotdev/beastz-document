@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 export default async function SettingsPage(): Promise<JSX.Element> {
   return (
     <div>

@@ -2,6 +2,8 @@ import { PublicDocumentEditor } from '@/app/collab-join/public-document-editor';
 import { CollabJoinPageProps } from '@/app/collab-join/type';
 import { Metadata, ResolvingMetadata } from 'next';
 
+export const runtime = 'edge';
+
 export async function generateMetadata(
   props: CollabJoinPageProps,
   _parent: ResolvingMetadata,
