@@ -21,6 +21,10 @@ const nextConfig = {
         source: '/',
         destination: '/landing/index.html',
       },
+      {
+        source: '/blogs',
+        destination: '/landing/blogs.html',
+      },
     ]
   },
 };

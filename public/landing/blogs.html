@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!--suppress JSUnresolvedLibraryURL, HtmlUnknownAnchorTarget, JSUnresolvedReference, HtmlDeprecatedAttribute -->
+
+<html lang="en">
+  <head lang="en">
+    <meta charset="UTF-8" />
+    <title>Blogs - Beastz Doc</title>
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <link rel="manifest" href="/landing/manifest.json" />
+
+    <!-- Google Font Loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind Loading -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#03BE97',
+              secondary: '#9c9c9c',
+
+              // custom ones
+              'primary-bright': '#63ffda',
+              ceramic: '#CCD6F6',
+              'primary-dark': '#102240',
+              dark: '#0B192F',
+            },
+            screens: {
+              tablet: {
+                min: '1330px',
+              },
+            },
+            boxShadow: {
+              blur: '0 0 20px',
+            },
+          },
+
+          // here happens total override
+          fontFamily: {
+            sans: ['"Quicksand"', 'sans-serif'],
+          },
+        },
+      };
+    </script>
+
+    <!-- Font awesome icon loading -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <style type="text/tailwindcss">
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body {
+        font-size: 16px;
+        color: white;
+        @apply bg-dark;
+      }
+
+      body.sidebar-open {
+        overflow: hidden;
+        position: fixed;
+      }
+
+      .button {
+        cursor: pointer;
+        border-radius: 2px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.1s;
+        text-decoration: none;
+        background: transparent;
+        padding: 10px 18px;
+
+        @apply text-primary-bright border border-primary-bright active:translate-y-0;
+      }
+
+      .button:hover {
+        @apply bg-primary-bright shadow-blur shadow-primary-bright text-black transition-all duration-300 -translate-y-1;
+      }
+    </style>
+  </head>
+
+  <body class="max-w-[1200px] mx-3 sm:mx-10 tablet:mx-auto">
+    <header class="flex flex-col pt-5">
+      <div class="flex justify-between">
+        <div class="flex items-center cursor-pointer" onclick="location.href = '/'">
+          <img src="/landing/document.svg" alt="main logo" class="w-8 tablet:w-10" />
+          <h1 class="pl-2 text-xl font-semibold text-primary-bright">Beastz Doc</h1>
+        </div>
+
+        <nav class="hidden md:flex select-none">
+          <ul class="flex">
+            <li class="px-3 hover:opacity-75 cursor-pointer transition-all flex items-center">
+              <a href="/">Home</a>
+            </li>
+            <li class="px-3 hover:opacity-75 cursor-pointer transition-all flex items-center">
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://beastz.dev"
+                class="underline decoration-1 cursor-alias"
+              >
+                Other Apps
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <a href="/home" class="hidden md:flex items-center button cursor-pointer">Try Now</a>
+
+        <i
+          id="sidebar-burger"
+          class="fa-solid fa-bars text-3xl text-primary-bright cursor-pointer block md:hidden transition hover:scale-110 active:scale-100"
+        ></i>
+
+        <div
+          id="sidebar-background"
+          class="bg-[#0006] fixed inset-0 z-10 cursor-pointer hidden"
+        ></div>
+        <div
+          id="sidebar"
+          class="fixed z-20 top-0 bottom-0 right-0 min-w-[400px] bg-primary-dark transform transition-transform duration-300 ease-in-out translate-x-[400px]"
+        >
+          <div class="p-4">
+            <div class="flex justify-end">
+              <i
+                id="sidebar-close"
+                class="fa-solid fa-xmark text-3xl text-primary-bright hover:scale-110 active:scale-100 cursor-pointer"
+              ></i>
+            </div>
+
+            <nav class="flex justify-center select-none">
+              <ul class="flex flex-col gap-5">
+                <li
+                  id="sidebar-home"
+                  class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
+                  onclick="location.href = '/'"
+                >
+                  <span class="text-primary-bright">#</span>
+                  <a class="pl-2">Home</a>
+                </li>
+                <li
+                  class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
+                >
+                  <span class="text-primary-bright">#</span>
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="https://beastz.dev"
+                    class="pl-1.5 underline decoration-1 cursor-alias"
+                  >
+                    Other Apps
+                  </a>
+                </li>
+
+                <li
+                  class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
+                >
+                  <a
+                    href="/home"
+                    class="flex items-center justify-center button cursor-pointer w-full"
+                    >Try Now</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        const bodyClassWhenSidebarOpen = 'sidebar-open';
+
+        const toggleSidebar = ({ isOpen, container, content }) => {
+          if (content) {
+            isOpen
+              ? (content.style.transform = 'translateX(0px)')
+              : (content.style.transform = 'translateX(400px)');
+          }
+
+          container.classList.toggle('hidden');
+        };
+
+        const burgerIcon = document.getElementById('sidebar-burger');
+        const closeSidebarIcon = document.getElementById('sidebar-close');
+        const sidenavContainer = document.getElementById('sidebar-background');
+        const sidenavContent = document.getElementById('sidebar');
+
+        burgerIcon?.addEventListener('click', () => {
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: true });
+          document.body.classList.add(bodyClassWhenSidebarOpen);
+        });
+        closeSidebarIcon?.addEventListener('click', () => {
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: false });
+          document.body.classList.remove(bodyClassWhenSidebarOpen);
+        });
+        sidenavContainer?.addEventListener('click', () => {
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: false });
+          document.body.classList.remove(bodyClassWhenSidebarOpen);
+        });
+      </script>
+    </header>
+
+    <main>
+      <section>
+        <div class="flex-col tablet:flex-row flex items-center justify-between pt-32">
+          <div class="tablet:pr-20 pb-10 tablet:pb-0">
+            <h1
+              class="text-3xl tablet:text-5xl font-bold text-ceramic text-center tablet:text-start"
+            >
+              In progres...
+            </h1>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

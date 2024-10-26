@@ -75,6 +75,11 @@
         @apply bg-dark;
       }
 
+      body.sidebar-open {
+        overflow: hidden;
+        position: fixed;
+      }
+
       .button {
         cursor: pointer;
         border-radius: 2px;
@@ -97,7 +102,7 @@
   <body class="max-w-[1200px] mx-3 sm:mx-10 tablet:mx-auto">
     <header class="flex flex-col pt-5">
       <div class="flex justify-between">
-        <div class="flex items-center">
+        <div class="flex items-center cursor-pointer" onclick="location.href = '/'">
           <img src="/landing/document.svg" alt="main logo" class="w-8 tablet:w-10" />
           <h1 class="pl-2 text-xl font-semibold text-primary-bright">Beastz Doc</h1>
         </div>
@@ -105,10 +110,7 @@
         <nav class="hidden md:flex select-none">
           <ul class="flex">
             <li class="px-3 hover:opacity-75 cursor-pointer transition-all flex items-center">
-              <a>Home</a>
-            </li>
-            <li class="px-3 hover:opacity-75 cursor-pointer transition-all flex items-center">
-              <a>Blogs</a>
+              <a href="/blogs">Blogs</a>
             </li>
             <li class="px-3 hover:opacity-75 cursor-pointer transition-all flex items-center">
               <a
@@ -149,16 +151,11 @@
             <nav class="flex justify-center select-none">
               <ul class="flex flex-col gap-5">
                 <li
+                  id="sidebar-blog"
                   class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
                 >
                   <span class="text-primary-bright">#</span>
-                  <a class="pl-2">Home</a>
-                </li>
-                <li
-                  class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
-                >
-                  <span class="text-primary-bright">#</span>
-                  <a class="pl-2">Blogs</a>
+                  <a href="/blogs" class="pl-2">Blogs</a>
                 </li>
                 <li
                   class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
@@ -173,17 +170,25 @@
                     Other Apps
                   </a>
                 </li>
+
+                <li
+                  class="pl-3 hover:opacity-75 cursor-pointer transition-all flex items-center text-2xl font-semibold"
+                >
+                  <a
+                    href="/home"
+                    class="flex items-center justify-center button cursor-pointer w-full"
+                    >Try Now</a
+                  >
+                </li>
               </ul>
             </nav>
-
-            <div class="flex justify-center pt-8">
-              <button class="hidden md:flex items-center button cursor-pointer">Try Now</button>
-            </div>
           </div>
         </div>
       </div>
 
       <script>
+        const bodyClassWhenSidebarOpen = 'sidebar-open';
+
         const toggleSidebar = ({ isOpen, container, content }) => {
           if (content) {
             isOpen
@@ -199,15 +204,18 @@
         const sidenavContainer = document.getElementById('sidebar-background');
         const sidenavContent = document.getElementById('sidebar');
 
-        burgerIcon?.addEventListener('click', () =>
-          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: true }),
-        );
-        closeSidebarIcon?.addEventListener('click', () =>
-          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: false }),
-        );
-        sidenavContainer?.addEventListener('click', () =>
-          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: false }),
-        );
+        burgerIcon?.addEventListener('click', () => {
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: true });
+          document.body.classList.add(bodyClassWhenSidebarOpen);
+        });
+        closeSidebarIcon?.addEventListener('click', () => {
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: false });
+          document.body.classList.remove(bodyClassWhenSidebarOpen);
+        });
+        sidenavContainer?.addEventListener('click', () => {
+          toggleSidebar({ content: sidenavContent, container: sidenavContainer, isOpen: false });
+          document.body.classList.remove(bodyClassWhenSidebarOpen);
+        });
       </script>
     </header>
 
@@ -226,7 +234,7 @@
           </div>
 
           <img
-            class="w-[600px] border border-ceramic rounded"
+            class="w-[700px] rounded-lg aspect-video border border-[#58585866]"
             src="/landing/main.png"
             loading="lazy"
             decoding="async"
