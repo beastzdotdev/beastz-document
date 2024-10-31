@@ -4,8 +4,6 @@ import { DocumentByIdPageParams } from '@/app/(auth)/document/[documentId]/types
 import { DocumentEditor } from '@/app/(auth)/document/[documentId]/_components/document-editor';
 import { DocumentEditorWrapper } from '@/app/(auth)/document/[documentId]/_components/document-editor-wrapper';
 
-export const runtime = 'edge';
-
 export async function generateMetadata(
   props: DocumentByIdPageParams,
   _parent: ResolvingMetadata,

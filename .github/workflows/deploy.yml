@@ -1,0 +1,41 @@
+# https://github.com/prisma/prisma/issues/10204
+# https://stackoverflow.com/questions/72004347/github-actions-build-docker-image-with-a-secret-json-file-and-env-file
+
+on:
+  push:
+    branches: ['master']
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: self-hosted
+    environment: Prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.10.0
+      - name: shut down the image
+        run: docker compose down
+      - name: remove dangling images
+        run: docker image prune --all --force
+      - name: rebuild the image
+        run: docker compose build --no-cache
+      - name: run the image
+        run: docker compose up -d
+    env:
+      NEXT_PUBLIC_BACKEND_BASE_URL: ${{vars.NEXT_PUBLIC_BACKEND_BASE_URL}}
+      NEXT_PUBLIC_VAULT_URL: ${{vars.NEXT_PUBLIC_VAULT_URL}}
+      NEXT_PUBLIC_SOCKET_URL: ${{vars.NEXT_PUBLIC_SOCKET_URL}}
