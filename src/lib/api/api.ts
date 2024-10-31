@@ -26,7 +26,7 @@ const redirect = (url: string) => {
   window.location.assign(url);
 };
 
-const redirectToAuthSignin = () => {
+export const redirectToAuthSignin = () => {
   const externalUrl = new URL(constants.externalLinks.signIn);
   const inlineHomeUrlEncoded = btoa(cleanURL(constants.path.home).toString());
 
